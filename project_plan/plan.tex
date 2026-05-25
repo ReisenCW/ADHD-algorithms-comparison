@@ -1,0 +1,232 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper,heading=true,fontset=windows]{ctexart}
+
+% ============================================
+% 页面设置
+% ============================================
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.8cm, right=2.8cm]{geometry}
+
+% ============================================
+% 颜色定义
+% ============================================
+\usepackage[table,dvipsnames]{xcolor}
+\definecolor{NavyBlue}{HTML}{003366}
+\definecolor{RowGray}{HTML}{F2F6FA}
+\definecolor{DarkCyan}{HTML}{008B8B}
+\definecolor{HeaderText}{HTML}{FFFFFF}
+
+% ============================================
+% 表格
+% ============================================
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{colortbl}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% 表头命令：蓝底白字，黑体
+\newcommand{\tableheader}[1]{%
+  \textcolor{HeaderText}{\heiti #1}%
+}
+
+% ============================================
+% 列表
+% ============================================
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=2em,itemsep=0.2em}
+
+% ============================================
+% 数学
+% ============================================
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% ============================================
+% 页眉页脚
+% ============================================
+\usepackage{fancyhdr}
+\setlength{\headheight}{14.5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\heiti\small\color{NavyBlue} ADHD图网络算法对比研究计划书}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\headrule}{\hrule width\headwidth height\headrulewidth \color{NavyBlue}}
+\fancyfoot{}
+
+% ============================================
+% 超链接
+% ============================================
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=DarkCyan,
+    urlcolor=NavyBlue,
+    citecolor=NavyBlue,
+    bookmarksnumbered=true,
+    pdfstartview=FitH,
+}
+
+% ============================================
+% 自定义命令
+% ============================================
+\newcommand{\kw}[1]{{\heiti #1}}
+
+% 紧凑表格行
+\renewcommand{\arraystretch}{1.25}
+
+\begin{document}
+
+% ============================================
+% 封面 / 标题区
+% ============================================
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+
+    {\heiti\fontsize{28pt}{36pt}\selectfont\color{NavyBlue}
+        基于图神经网络的ADHD检测\par}
+    \vspace{0.5cm}
+    {\heiti\fontsize{22pt}{30pt}\selectfont\color{NavyBlue}
+        算法系统性对比研究\par}
+
+    \vspace{1.5cm}
+    {\LARGE\heiti 项目计划书\par}
+
+    \vspace{4cm}
+
+    {\large
+        \begin{tabular}{rl}
+            \textbf{课程} & 数据分析与数据挖掘      \\
+            \textbf{成员} & 张俊峰、贾博睿、李昊、戴昊晟 \\
+            \textbf{日期} & 2026年5月        \\
+        \end{tabular}\par}
+
+\end{titlepage}
+
+% ============================================
+% 一、项目概述与研究目标
+% ============================================
+\section{项目概述与研究目标}
+
+注意缺陷多动障碍（ADHD）全球患病率约5\%--7\%，临床诊断长期依赖行为评估与主观访谈，缺乏客观生物标志物。静息态功能磁共振成像（rs-fMRI）为ADHD的客观检测提供了新途径：脑功能连接网络天然具有图结构，以AAL-116脑区为节点、以BOLD序列统计依赖为边，可直接建模为图分类任务。
+
+图神经网络（GNN）已成为脑网络分析的主流范式，但传统消息传递机制面临三大结构性瓶颈：\kw{过平滑（Over-smoothing）}、\kw{过压缩（Over-squashing）}与\kw{1-WL表达上界}。ADHD的神经生物学特征进一步放大了这些瓶颈：
+\begin{itemize}
+    \item \kw{背侧注意网络（DAN）内部振幅降低}：涉及多脑区高阶协同活动减弱，超越配对边表达能力；
+    \item \kw{默认模式网络（DMN）与DAN协调异常}：属于功能网络级整体关系，需高阶交互建模；
+    \item \kw{前额叶--顶叶长程连接柔性降低}：跨越小世界网络中的长程路径，易受过压缩影响。
+\end{itemize}
+
+本项目以\kw{算法系统性对比研究}为核心，针对ADHD检测这一同一任务，实现并深入对比至少5种不同类型的图网络算法，从理论性质、表达能力、病理适配性与实证性能四个维度展开系统性分析，为fMRI脑疾病检测的模型选型提供严格依据。
+
+% ============================================
+% 二、数据来源与实验设置
+% ============================================
+\section{数据来源与实验设置}
+
+\subsection{数据集}
+
+\begin{itemize}
+    \item \kw{数据集}：OpenNeuro-ds002424
+    \item \kw{样本量}：546名被试（ADHD 232 / HC 314），分层采样划分：训练60\%（$\approx 327$）、验证20\%（$\approx 109$）、测试20\%（$\approx 109$）
+    \item \kw{图结构}：节点 $=$ 116（AAL-116），边 $=$ 偏相关矩阵经全局百分位稀疏化（$p=30$，保留前70\%边）
+    \item \kw{节点特征}：120维（连接profile 116 $+$ 度1 $+$ MNI坐标3）
+    \item \kw{标签}：二分类（ADHD $=$ 1，HC $=$ 0）
+\end{itemize}
+
+\subsection{数据预处理管线（标准化流程）}
+
+所有算法共享\kw{完全一致}的数据预处理流程，确保对比的严格性：
+
+\begin{enumerate}[leftmargin=3em]
+    \item \kw{ROI时间序列提取}：nilearn NiftiLabelsMasker，带通滤波0.01--0.1\,Hz，去线性漂移，z-score标准化
+    \item \kw{精度矩阵估计}：$T > N$ 时 GraphicalLassoCV（3折交叉验证）；$T \leq N$ 时 Ledoit-Wolf收缩 $+$ 伪逆
+    \item \kw{偏相关矩阵}：由精度矩阵计算，对角线置0
+    \item \kw{全局稀疏化}：保留偏相关绝对值前70\%的边，对称化
+    \item \kw{社区检测}：Louvain算法，生成社区标签用于特征增强
+    \item \kw{格式转换}：统一转换为PyG \texttt{Data}对象；HGNN/HyperGCN额外转换为DHG超图格式或团展开图
+\end{enumerate}
+
+\subsection{评估指标体系}
+
+针对类别轻度不平衡（ADHD:HC $\approx$ 4:6），采用多指标综合评估：
+
+\begin{tabularx}{\textwidth}{L{3.5cm} L{5.5cm} X}
+    \rowcolor{NavyBlue}
+    \tableheader{指标类型}            & \tableheader{具体指标}     & \tableheader{用途}                                         \\
+    \rowcolor{RowGray}\kw{主指标}    & \kw{AUC-ROC}           & 对类别不平衡鲁棒，与综述文献Table~1直接可比                                \\
+    \kw{辅助指标}                     & \kw{Balanced Accuracy} & $(\text{Sensitivity} + \text{Specificity})/2$，反映两类均衡识别能力 \\
+    \rowcolor{RowGray}\kw{参考指标}   & Accuracy               & 与文献基线直接对比                                                \\
+    \kw{参考指标}                     & F1-score               & 综合精确率与召回率                                                \\
+    \rowcolor{RowGray}\kw{可解释性指标} & 注意力权重可视化               & GAT/GT的注意力热力图，验证前额叶--顶叶/DMN-DAN权重集中性                     \\
+\end{tabularx}
+
+\subsection{对比算法选择}
+
+基于ADHD病理的神经生物学特征与消息传递GNN的结构性瓶颈，本项目选择覆盖\kw{三类图网络范式}的6种候选算法进行系统性对比。三类范式分别针对消息传递框架的不同瓶颈：
+
+\begin{itemize}
+    \item \kw{传统图神经网络（GNN）}：在消息传递框架内优化局部聚合权重，归纳偏置强，样本效率高，适合小样本临床场景
+    \item \kw{超图神经网络（HGNN）}：突破配对边限制，以超边直接建模多脑区高阶协同激活（如DMN-DAN网络级协调），表达能力突破1-WL上界
+    \item \kw{图Transformer（GT）}：以全局自注意力将任意节点对间的路径长度压缩至 $O(1)$，从根本上消除过平滑与过压缩
+\end{itemize}
+
+6种算法的选择遵循两条原则：
+（1）每种范式至少覆盖一种代表性方法，确保理论假设可被检验；
+（2）同一范式内部设置变体对比，以分离特定设计选择的贡献（如GCN vs GAT验证注意力权重价值，HGNN vs HyperGCN评估完整超图卷积的理论增益）。
+
+\vspace{0.5em}
+{\small
+    \begin{tabularx}{\textwidth}{c c X}
+        \rowcolor{NavyBlue}
+        \tableheader{架构}                          & \tableheader{所属范式} & \tableheader{选型理由}                                                                  \\
+        \rowcolor{RowGray} \kw{GCN}               & 传统GNN              & 最简基线，各向同性低通滤波，归纳偏置最强，样本效率最高。作为性能下界参考与消融基线                                           \\
+        \kw{GAT}                                  & 传统GNN              & 在图邻域内引入自适应注意力权重，为不同功能连接赋予差异化聚合权重，提供连接层级的可解释性                                        \\
+        \rowcolor{RowGray} \kw{HGNN}              & 超图GNN              & 通过 $k$-NN 超边直接建模功能网络级高阶交互（DMN-DAN协同），表达能力 $>$ 1-WL，神经生物学层面最适配ADHD病理                 \\
+        \kw{HyperGCN}                             & 超图GNN              & 以团展开（Clique Expansion）近似超图谱卷积，可直接复用PyG的 \texttt{GCNConv}，实现成本极低。与HGNN对比可量化近似方案的理论损失 \\
+        \rowcolor{RowGray} \kw{Graph Transformer} & 图Transformer       & 全局自注意力在单层内连接任意节点对，从结构上消除过压缩，理论上最利于前额叶--顶叶长程执行通路的特征提取                                \\
+        \kw{SAN}                                  & 图Transformer       & 使用图拉普拉斯完整谱构造注意力，克服截断PE丢失高频局部结构的问题                                                   \\
+    \end{tabularx}}
+
+\vspace{1em}
+最终报告将从\kw{表达能力、过平滑风险、过压缩风险、高阶交互能力、全局感受野、归纳偏置强度、小样本适配性}七个理论维度与\kw{AUC-ROC、Balanced Accuracy、Accuracy、F1-score}四个实证指标出发，形成``理论分析 $\to$ 实验验证 $\to$ 结论''的完整闭环，为fMRI脑疾病检测的架构选型提供严格依据。
+
+% ============================================
+% 三、分工计划
+% ============================================
+\section{分工计划}
+
+ {\small
+  \begin{tabularx}{\textwidth}{c c X}
+      \rowcolor{NavyBlue}
+      \tableheader{角色}                & \tableheader{负责人}                   & \tableheader{核心职责} \\
+      \rowcolor{RowGray}\kw{数据工程负责人}  & \kw{贾博睿}
+                                      & 负责数据下载、预处理与标准化管线构建，确保所有算法输入一致。
+      \\
+      \kw{算法负责人}                      & \kw{李昊 $+$ 戴昊晟}
+                                      & 负责6种算法的实现、调优与多随机种子实验，确保统一训练框架与公平对比。
+      \\
+      \rowcolor{RowGray}\kw{评估与交付负责人} & \kw{张俊峰}
+                                      & 负责公平评估框架搭建、多维度指标计算与可视化、理论分析及最终报告撰写。
+      \\
+  \end{tabularx}}
+
+% ============================================
+% 四、时间表与里程碑
+% ============================================
+\section{时间表与里程碑}
+
+ {\small
+  \begin{tabularx}{\textwidth}{L{2.5cm} L{2.2cm} L{3cm} X}
+      \rowcolor{NavyBlue}
+      \tableheader{阶段}               & \tableheader{截止日期}  & \tableheader{交付物}            & \tableheader{关键任务} \\
+      \rowcolor{RowGray}\kw{数据工程阶段}  & \kw{5.28（周四）}       & 标准预处理数据集、数据加载管线       & 完成546名被试图构建与格式转换，输出数据分布统计 \\
+      \kw{算法实现阶段}                    & \kw{6.6（周六）}        & 6种算法代码、初步验证集结果        & 完成所有算法实现与统一训练框架，各算法至少3次随机种子实验 \\
+      \rowcolor{RowGray}\kw{评估与分析阶段} & \kw{6.10（周三）}       & 消融实验完整结果、对比矩阵、可视化图表 & 执行消融实验，完成指标计算、统计检验与可视化 \\
+      \kw{报告撰写与交付阶段}               & \kw{6.14（周日）}       & 技术报告、答辩PPT、代码仓库        & 整合理论分析、实验对比与结论，提交最终成果 \\
+  \end{tabularx}}
+
+\end{document}
