@@ -1,0 +1,19 @@
+{
+  "model": "hgnn",
+  "task": "SLI",
+  "best_epoch": 18,
+  "best_score": 0.5751633986923184,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.693752068739671,
+    "acc": 0.4615384638309479,
+    "f1": 0.6315789473679224,
+    "macro_f1": 0.3157894736839612,
+    "balanced_acc": 0.4999999999999167
+  },
+  "num_samples": 66,
+  "num_train": 40,
+  "num_val": 13,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\hgnn_SLI.pt"
+}

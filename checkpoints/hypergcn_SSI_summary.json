@@ -1,0 +1,19 @@
+{
+  "model": "hypergcn",
+  "task": "SSI",
+  "best_epoch": 35,
+  "best_score": 0.5751633986923184,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.7118367965404804,
+    "acc": 0.38461539149284363,
+    "f1": 0.5555555555550494,
+    "macro_f1": 0.2777777777775247,
+    "balanced_acc": 0.41666666666659724
+  },
+  "num_samples": 65,
+  "num_train": 39,
+  "num_val": 13,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\hypergcn_SSI.pt"
+}

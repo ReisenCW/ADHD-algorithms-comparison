@@ -1,0 +1,19 @@
+{
+  "model": "hypergcn",
+  "task": "VSI",
+  "best_epoch": 8,
+  "best_score": 0.475935828876511,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.7037577549616496,
+    "acc": 0.46666666865348816,
+    "f1": 0.5555555555550494,
+    "macro_f1": 0.4444444444439761,
+    "balanced_acc": 0.527777777777696
+  },
+  "num_samples": 72,
+  "num_train": 43,
+  "num_val": 14,
+  "num_test": 15,
+  "checkpoint": "checkpoints\\hypergcn_VSI.pt"
+}

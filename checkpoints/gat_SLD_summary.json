@@ -1,0 +1,19 @@
+{
+  "model": "gat",
+  "task": "SLD",
+  "best_epoch": 15,
+  "best_score": 0.7482517482511265,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6964052548775306,
+    "acc": 0.38461539149284363,
+    "f1": 0.19999999999948,
+    "macro_f1": 0.34999999999946263,
+    "balanced_acc": 0.36904761904756433
+  },
+  "num_samples": 62,
+  "num_train": 37,
+  "num_val": 12,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\gat_SLD.pt"
+}

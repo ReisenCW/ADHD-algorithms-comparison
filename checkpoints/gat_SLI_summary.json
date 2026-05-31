@@ -1,0 +1,19 @@
+{
+  "model": "gat",
+  "task": "SLI",
+  "best_epoch": 31,
+  "best_score": 0.674999999999407,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6929590656207159,
+    "acc": 0.6153846383094788,
+    "f1": 0.2857142857139591,
+    "macro_f1": 0.511278195488287,
+    "balanced_acc": 0.583333333333248
+  },
+  "num_samples": 66,
+  "num_train": 40,
+  "num_val": 13,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\gat_SLI.pt"
+}

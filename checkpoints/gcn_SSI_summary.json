@@ -1,0 +1,19 @@
+{
+  "model": "gcn",
+  "task": "SSI",
+  "best_epoch": 16,
+  "best_score": 0.6388888888883579,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.688939094543457,
+    "acc": 0.4615384638309479,
+    "f1": 0.46153846153789346,
+    "macro_f1": 0.46153846153789346,
+    "balanced_acc": 0.464285714285642
+  },
+  "num_samples": 65,
+  "num_train": 39,
+  "num_val": 13,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\gcn_SSI.pt"
+}

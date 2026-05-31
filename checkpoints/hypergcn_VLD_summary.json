@@ -1,0 +1,19 @@
+{
+  "model": "hypergcn",
+  "task": "VLD",
+  "best_epoch": 16,
+  "best_score": 0.6590909090903802,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6934974874768939,
+    "acc": 0.5,
+    "f1": 0.0,
+    "macro_f1": 0.3333333333330657,
+    "balanced_acc": 0.4374999999999453
+  },
+  "num_samples": 73,
+  "num_train": 44,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\hypergcn_VLD.pt"
+}

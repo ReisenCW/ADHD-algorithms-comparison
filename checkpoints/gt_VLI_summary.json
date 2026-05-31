@@ -1,0 +1,19 @@
+{
+  "model": "gt",
+  "task": "VLI",
+  "best_epoch": 3,
+  "best_score": 0.6666666666660978,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.69308488709586,
+    "acc": 0.5714285969734192,
+    "f1": 0.666666666666148,
+    "macro_f1": 0.533333333332874,
+    "balanced_acc": 0.6249999999999011
+  },
+  "num_samples": 74,
+  "num_train": 45,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\gt_VLI.pt"
+}

@@ -1,0 +1,19 @@
+{
+  "model": "gat",
+  "task": "VLD",
+  "best_epoch": 1,
+  "best_score": 0.8611111111104923,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6966391716684613,
+    "acc": 0.4285714328289032,
+    "f1": 0.0,
+    "macro_f1": 0.29999999999973,
+    "balanced_acc": 0.37499999999995315
+  },
+  "num_samples": 73,
+  "num_train": 44,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\gat_VLD.pt"
+}

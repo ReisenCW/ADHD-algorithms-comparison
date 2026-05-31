@@ -1,0 +1,19 @@
+{
+  "model": "gt",
+  "task": "SSD",
+  "best_epoch": 5,
+  "best_score": 0.5124999999994349,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6933501561482748,
+    "acc": 0.5833333134651184,
+    "f1": 0.44444444444385184,
+    "macro_f1": 0.5555555555549658,
+    "balanced_acc": 0.5571428571427661
+  },
+  "num_samples": 64,
+  "num_train": 39,
+  "num_val": 13,
+  "num_test": 12,
+  "checkpoint": "checkpoints\\gt_SSD.pt"
+}

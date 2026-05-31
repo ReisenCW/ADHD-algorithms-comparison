@@ -1,0 +1,19 @@
+{
+  "model": "gat",
+  "task": "SSD",
+  "best_epoch": 8,
+  "best_score": 0.6904761904755958,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6870198647181193,
+    "acc": 0.5833333134651184,
+    "f1": 0.6666666666661333,
+    "macro_f1": 0.5555555555550666,
+    "balanced_acc": 0.6428571428570224
+  },
+  "num_samples": 64,
+  "num_train": 39,
+  "num_val": 13,
+  "num_test": 12,
+  "checkpoint": "checkpoints\\gat_SSD.pt"
+}

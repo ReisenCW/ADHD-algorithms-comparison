@@ -1,0 +1,19 @@
+{
+  "model": "gcn",
+  "task": "VLD",
+  "best_epoch": 9,
+  "best_score": 0.7321428571422952,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6911634802818298,
+    "acc": 0.7142857313156128,
+    "f1": 0.7142857142851223,
+    "macro_f1": 0.7142857142851223,
+    "balanced_acc": 0.7291666666665582
+  },
+  "num_samples": 73,
+  "num_train": 44,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\gcn_VLD.pt"
+}

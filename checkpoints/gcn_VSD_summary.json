@@ -1,0 +1,19 @@
+{
+  "model": "gcn",
+  "task": "VSD",
+  "best_epoch": 6,
+  "best_score": 0.6888888888882856,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6982129216194153,
+    "acc": 0.3571428656578064,
+    "f1": 0.0,
+    "macro_f1": 0.2631578947365706,
+    "balanced_acc": 0.3124999999999609
+  },
+  "num_samples": 70,
+  "num_train": 42,
+  "num_val": 14,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\gcn_VSD.pt"
+}

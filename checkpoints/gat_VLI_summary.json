@@ -1,0 +1,19 @@
+{
+  "model": "gat",
+  "task": "VLI",
+  "best_epoch": 10,
+  "best_score": 0.7222222222216234,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6907629711287362,
+    "acc": 0.6428571343421936,
+    "f1": 0.6153846153840236,
+    "macro_f1": 0.6410256410250517,
+    "balanced_acc": 0.6458333333332387
+  },
+  "num_samples": 74,
+  "num_train": 45,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\gat_VLI.pt"
+}

@@ -1,0 +1,19 @@
+{
+  "model": "gt",
+  "task": "VSI",
+  "best_epoch": 7,
+  "best_score": 0.6256684491972728,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.7043743173281352,
+    "acc": 0.3333333432674408,
+    "f1": 0.4444444444439506,
+    "macro_f1": 0.30555555555510727,
+    "balanced_acc": 0.3888888888888271
+  },
+  "num_samples": 72,
+  "num_train": 43,
+  "num_val": 14,
+  "num_test": 15,
+  "checkpoint": "checkpoints\\gt_VSI.pt"
+}

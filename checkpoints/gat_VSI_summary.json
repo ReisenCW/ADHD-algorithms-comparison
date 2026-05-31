@@ -1,0 +1,19 @@
+{
+  "model": "gat",
+  "task": "VSI",
+  "best_epoch": 6,
+  "best_score": 0.6410256410250725,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6996988733609517,
+    "acc": 0.6666666865348816,
+    "f1": 0.6666666666660978,
+    "macro_f1": 0.6666666666660978,
+    "balanced_acc": 0.6944444444443442
+  },
+  "num_samples": 72,
+  "num_train": 43,
+  "num_val": 14,
+  "num_test": 15,
+  "checkpoint": "checkpoints\\gat_VSI.pt"
+}

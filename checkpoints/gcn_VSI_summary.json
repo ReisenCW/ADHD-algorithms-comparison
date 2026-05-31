@@ -1,0 +1,19 @@
+{
+  "model": "gcn",
+  "task": "VSI",
+  "best_epoch": 27,
+  "best_score": 0.6410256410250517,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.7419995307922364,
+    "acc": 0.4000000059604645,
+    "f1": 0.5263157894731967,
+    "macro_f1": 0.35406698564552397,
+    "balanced_acc": 0.4722222222221466
+  },
+  "num_samples": 72,
+  "num_train": 43,
+  "num_val": 14,
+  "num_test": 15,
+  "checkpoint": "checkpoints\\gcn_VSI.pt"
+}

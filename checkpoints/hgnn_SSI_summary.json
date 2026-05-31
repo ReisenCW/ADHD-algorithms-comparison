@@ -1,0 +1,19 @@
+{
+  "model": "hgnn",
+  "task": "SSI",
+  "best_epoch": 18,
+  "best_score": 0.674999999999407,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6946148184629587,
+    "acc": 0.4615384638309479,
+    "f1": 0.5333333333327821,
+    "macro_f1": 0.44848484848430836,
+    "balanced_acc": 0.4761904761904002
+  },
+  "num_samples": 65,
+  "num_train": 39,
+  "num_val": 13,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\hgnn_SSI.pt"
+}

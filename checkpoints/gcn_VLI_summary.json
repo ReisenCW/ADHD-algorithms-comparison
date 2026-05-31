@@ -1,0 +1,19 @@
+{
+  "model": "gcn",
+  "task": "VLI",
+  "best_epoch": 8,
+  "best_score": 0.6666666666660978,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6863811526979718,
+    "acc": 0.8571428656578064,
+    "f1": 0.8571428571422448,
+    "macro_f1": 0.8571428571422448,
+    "balanced_acc": 0.8749999999998699
+  },
+  "num_samples": 74,
+  "num_train": 45,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\gcn_VLI.pt"
+}

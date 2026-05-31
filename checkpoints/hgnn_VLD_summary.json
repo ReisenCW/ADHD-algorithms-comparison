@@ -1,0 +1,19 @@
+{
+  "model": "hgnn",
+  "task": "VLD",
+  "best_epoch": 15,
+  "best_score": 0.8499999999993875,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6933789253234863,
+    "acc": 0.6428571343421936,
+    "f1": 0.4444444444439012,
+    "macro_f1": 0.590643274853247,
+    "balanced_acc": 0.6041666666665841
+  },
+  "num_samples": 73,
+  "num_train": 44,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\hgnn_VLD.pt"
+}

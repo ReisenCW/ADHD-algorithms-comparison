@@ -1,0 +1,19 @@
+{
+  "model": "gt",
+  "task": "VLD",
+  "best_epoch": 7,
+  "best_score": 0.39999999999965,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6979088102068219,
+    "acc": 0.2857142984867096,
+    "f1": 0.4444444444439506,
+    "macro_f1": 0.2222222222219753,
+    "balanced_acc": 0.33333333333327775
+  },
+  "num_samples": 73,
+  "num_train": 44,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\gt_VLD.pt"
+}

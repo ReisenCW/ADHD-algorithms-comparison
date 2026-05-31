@@ -1,0 +1,19 @@
+{
+  "model": "gat",
+  "task": "SSI",
+  "best_epoch": 1,
+  "best_score": 0.5751633986922551,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6903165395443256,
+    "acc": 0.6153846383094788,
+    "f1": 0.4444444444439012,
+    "macro_f1": 0.5751633986922551,
+    "balanced_acc": 0.5952380952380062
+  },
+  "num_samples": 65,
+  "num_train": 39,
+  "num_val": 13,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\gat_SSI.pt"
+}

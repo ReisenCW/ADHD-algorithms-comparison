@@ -1,0 +1,19 @@
+{
+  "model": "hypergcn",
+  "task": "SLI",
+  "best_epoch": 13,
+  "best_score": 0.6153846153840236,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6938607371770419,
+    "acc": 0.3076923191547394,
+    "f1": 0.47058823529360555,
+    "macro_f1": 0.23529411764680278,
+    "balanced_acc": 0.33333333333327775
+  },
+  "num_samples": 66,
+  "num_train": 40,
+  "num_val": 13,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\hypergcn_SLI.pt"
+}

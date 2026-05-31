@@ -1,0 +1,19 @@
+{
+  "model": "hgnn",
+  "task": "VSD",
+  "best_epoch": 8,
+  "best_score": 0.7142857142851429,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6957928027425494,
+    "acc": 0.5,
+    "f1": 0.2222222222217284,
+    "macro_f1": 0.4269005847947977,
+    "balanced_acc": 0.4583333333332726
+  },
+  "num_samples": 70,
+  "num_train": 42,
+  "num_val": 14,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\hgnn_VSD.pt"
+}

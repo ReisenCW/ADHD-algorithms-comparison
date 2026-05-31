@@ -1,0 +1,19 @@
+{
+  "model": "gcn",
+  "task": "SLI",
+  "best_epoch": 18,
+  "best_score": 0.7450980392150993,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6931200256714454,
+    "acc": 0.6153846383094788,
+    "f1": 0.2857142857139591,
+    "macro_f1": 0.511278195488287,
+    "balanced_acc": 0.583333333333248
+  },
+  "num_samples": 66,
+  "num_train": 40,
+  "num_val": 13,
+  "num_test": 13,
+  "checkpoint": "checkpoints\\gcn_SLI.pt"
+}

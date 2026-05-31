@@ -1,0 +1,19 @@
+{
+  "model": "gt",
+  "task": "VSD",
+  "best_epoch": 6,
+  "best_score": 0.4974358974353911,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6999994771821159,
+    "acc": 0.6428571343421936,
+    "f1": 0.7058823529406367,
+    "macro_f1": 0.6256684491973432,
+    "balanced_acc": 0.6874999999998932
+  },
+  "num_samples": 70,
+  "num_train": 42,
+  "num_val": 14,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\gt_VSD.pt"
+}

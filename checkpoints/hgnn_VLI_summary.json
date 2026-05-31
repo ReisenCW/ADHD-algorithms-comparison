@@ -1,0 +1,19 @@
+{
+  "model": "hgnn",
+  "task": "VLI",
+  "best_epoch": 11,
+  "best_score": 0.39999999999965,
+  "monitor": "val_macro_f1",
+  "test": {
+    "loss": 0.6951885563986642,
+    "acc": 0.4285714328289032,
+    "f1": 0.59999999999952,
+    "macro_f1": 0.29999999999976,
+    "balanced_acc": 0.4999999999999167
+  },
+  "num_samples": 74,
+  "num_train": 45,
+  "num_val": 15,
+  "num_test": 14,
+  "checkpoint": "checkpoints\\hgnn_VLI.pt"
+}
