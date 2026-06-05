@@ -116,11 +116,22 @@ class GATLayer(nn.Module):
 
 
 class GATModel(nn.Module):
-    def __init__(self, in_dim: int = 120, hidden_dim: int = 64, heads: int = 4, num_classes: int = 2, dropout: float = 0.3) -> None:
+    """GAT模型，支持可配置层数"""
+    def __init__(self, in_dim: int = 120, hidden_dim: int = 64, heads: int = 4, num_layers: int = 2, num_classes: int = 2, dropout: float = 0.3) -> None:
         super().__init__()
-        self.layer1 = GATLayer(in_dim, hidden_dim, heads=heads, concat=True, dropout=dropout)
-        self.layer2 = GATLayer(hidden_dim * heads, hidden_dim, heads=1, concat=False, dropout=dropout)
+        self.layers = nn.ModuleList()
         self.dropout = dropout
+
+        # First layer
+        self.layers.append(GATLayer(in_dim, hidden_dim, heads=heads, concat=True, dropout=dropout))
+
+        # Hidden layers (if num_layers > 2)
+        for _ in range(num_layers - 2):
+            self.layers.append(GATLayer(hidden_dim * heads, hidden_dim, heads=heads, concat=True, dropout=dropout))
+
+        # Last layer
+        self.layers.append(GATLayer(hidden_dim * heads if num_layers > 1 else in_dim, hidden_dim, heads=1, concat=False, dropout=dropout))
+
         self.head = GraphClassifierHead(hidden_dim, num_classes=num_classes, dropout=0.5)
 
     def forward(
@@ -131,9 +142,10 @@ class GATModel(nn.Module):
         comm: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        x = F.elu(self.layer1(x, adj, mask=mask))
-        x = F.dropout(x, p=self.dropout, training=self.training)
-        x = F.elu(self.layer2(x, adj, mask=mask))
+        for i, layer in enumerate(self.layers):
+            x = F.elu(layer(x, adj, mask=mask))
+            if i < len(self.layers) - 1:
+                x = F.dropout(x, p=self.dropout, training=self.training)
         g = masked_mean(x, mask)
         return self.head(g)
 
@@ -166,22 +178,22 @@ def build_hyperedges(adj: torch.Tensor, comm: torch.Tensor | None = None, topk: 
 
 
 class HGNNLayer(nn.Module):
+    """高效向量化的HGNN层"""
     def __init__(self, in_dim: int, out_dim: int) -> None:
         super().__init__()
         self.lin = nn.Linear(in_dim, out_dim)
 
     def forward(self, x: torch.Tensor, h: torch.Tensor) -> torch.Tensor:
         # x: [B, N, F], h: [B, N, E]
-        outputs = []
-        for xb, hb in zip(x, h):
-            de = hb.sum(dim=0).clamp_min(1.0)
-            dv = hb.sum(dim=1).clamp_min(1.0)
-            dv_inv_sqrt = dv.pow(-0.5)
-            tmp = dv_inv_sqrt.unsqueeze(1) * hb * de.reciprocal().unsqueeze(0)
-            prop = tmp @ hb.t()
-            prop = dv_inv_sqrt.unsqueeze(1) * prop * dv_inv_sqrt.unsqueeze(0)
-            outputs.append(self.lin(prop @ xb))
-        return torch.stack(outputs, dim=0)
+        # 向量化计算: D_v^{-1/2} H D_e^{-1} H^T D_v^{-1/2} X
+        de = h.sum(dim=1).clamp_min(1.0)  # [B, E]
+        dv = h.sum(dim=2).clamp_min(1.0)  # [B, N]
+        dv_inv_sqrt = dv.pow(-0.5).unsqueeze(-1)  # [B, N, 1]
+        de_inv = de.reciprocal().unsqueeze(1)  # [B, 1, E]
+        norm_h = dv_inv_sqrt * h * de_inv  # [B, N, E]
+        prop = torch.bmm(norm_h, h.transpose(1, 2))  # [B, N, N]
+        prop = dv_inv_sqrt * prop * dv_inv_sqrt.transpose(1, 2)
+        return self.lin(torch.bmm(prop, x))
 
 
 class HGNNModel(nn.Module):
@@ -324,7 +336,7 @@ def build_model(
     if name == "gcn":
         return GCNModel(in_dim=in_dim, hidden_dim=hidden_dim, num_layers=num_layers, num_classes=num_classes, dropout=dropout)
     if name == "gat":
-        return GATModel(in_dim=in_dim, hidden_dim=hidden_dim, heads=heads, num_classes=num_classes, dropout=dropout)
+        return GATModel(in_dim=in_dim, hidden_dim=hidden_dim, heads=heads, num_layers=num_layers, num_classes=num_classes, dropout=dropout)
     if name == "hgnn":
         return HGNNModel(in_dim=in_dim, hidden_dim=hidden_dim, num_classes=num_classes, dropout=dropout, topk=topk)
     if name == "hypergcn":
