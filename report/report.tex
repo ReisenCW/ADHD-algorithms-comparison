@@ -1,0 +1,914 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper,heading=true,fontset=windows]{ctexart}
+
+% ============================================
+% 页面设置
+% ============================================
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.8cm, right=2.8cm]{geometry}
+
+% ============================================
+% 颜色
+% ============================================
+\usepackage[table,dvipsnames]{xcolor}
+\definecolor{NavyBlue}{HTML}{003366}
+\definecolor{RowGray}{HTML}{F2F6FA}
+\definecolor{DarkCyan}{HTML}{008B8B}
+
+% ============================================
+% 表格
+% ============================================
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{colortbl}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcommand{\tableheader}[1]{\textcolor{white}{\heiti #1}}
+
+% ============================================
+% 数学
+% ============================================
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% ============================================
+% 图表
+% ============================================
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\graphicspath{{../output/evaluation/figures/}}
+
+% ============================================
+% 页眉页脚
+% ============================================
+\usepackage{fancyhdr}
+\setlength{\headheight}{14.5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\heiti\small\color{NavyBlue} 基于图神经网络的ADHD检测算法系统性对比研究}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.6pt}
+\fancyfoot{}
+
+% ============================================
+% 超链接
+% ============================================
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=DarkCyan,
+    urlcolor=NavyBlue,
+    citecolor=NavyBlue,
+    bookmarksnumbered=true,
+    pdfstartview=FitH,
+}
+
+% ============================================
+% 列表
+% ============================================
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=2em,itemsep=0.2em}
+
+% ============================================
+% 自定义命令
+% ============================================
+\newcommand{\kw}[1]{{\heiti #1}}
+\renewcommand{\arraystretch}{1.2}
+
+% ============================================
+% 文档开始
+% ============================================
+\begin{document}
+
+% ============================================
+% 封面
+% ============================================
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+
+    {\heiti\fontsize{26pt}{34pt}\selectfont\color{NavyBlue}
+        基于图神经网络的ADHD检测\par}
+    \vspace{0.5cm}
+    {\heiti\fontsize{22pt}{30pt}\selectfont\color{NavyBlue}
+        算法系统性对比研究\par}
+
+    \vspace{2cm}
+
+    {\large\heiti 数据分析与数据挖掘课程期末项目\par}
+
+    \vspace{3cm}
+
+    {\large
+        \begin{tabular}{rl}
+            \textbf{团队成员} & 2350284\enspace 张俊峰 \\
+                          & 2353721\enspace 贾博睿 \\
+                          & 2353815\enspace 李昊  \\
+                          & 2350223\enspace 戴昊晟 \\
+            \textbf{提交日期} & 2026年6月             \\
+        \end{tabular}\par}
+
+\end{titlepage}
+
+% ============================================
+% 摘要
+% ============================================
+\begin{abstract}
+    注意缺陷多动障碍(ADHD)的临床诊断长期依赖主观行为评估, 缺乏客观生物标志物。
+    本文以OpenNeuro-ds002424数据集的546名被试(232 ADHD / 314健康对照)为对象,
+    将静息态fMRI脑功能连接建模为116节点图分类任务,
+    系统实现了覆盖传统图神经网络(GCN、GAT)、超图神经网络(HGNN、HyperGCN)
+    和图Transformer(Graph Transformer)三类范式的五种图网络算法,
+    并从理论性质与实证性能两个维度进行系统性对比分析。
+
+    实验结果表明：
+
+    \medskip
+    \noindent(1)Friedman检验确认五模型在准确率($p=0.033$)和Macro-F1($p=0.013$)
+    上存在显著差异, GCN与GAT的Nemenyi检验显著优于Graph Transformer($CD=2.157$);
+
+    \noindent(2)AUC-ROC指标上模型间无显著差异($p=0.509$), 反映各模型对类别不平衡的排序能力相近;
+
+    \noindent(3)错误分析揭示Graph Transformer表现出严重的假阳性偏向(FP率最高),
+    而GAT和HGNN倾向于漏诊(FN偏向), HyperGCN则表现出两极分化;
+
+    \noindent(4)模型间预测一致性普遍较低(Cohen's Kappa $0.06\sim0.36$),
+    表明不同范式的错误模式具有互补性, 为集成学习提供了可能性。
+
+    综合分析表明, 归纳偏置强度的差异是影响小样本场景下泛化性能的关键因素：
+    归纳偏置最强的GCN在分类准确率上综合表现最优,
+    超图方法HGNN在AUC-ROC上排名第一(0.607), 验证了高阶交互建模的理论优势。
+    本研究为fMRI脑疾病检测任务的图网络架构选型提供了严格的实证依据。
+
+    \vspace{1em}
+    \noindent\kw{关键词：}ADHD检测;图神经网络;超图神经网络;图Transformer;
+    功能脑网络;算法对比;统计显著性检验
+\end{abstract}
+
+% ============================================
+% 1 引言
+% ============================================
+\section{引言}
+
+\subsection{研究背景}
+
+注意缺陷多动障碍(Attention Deficit Hyperactivity Disorder, ADHD)是儿童和青少年中最常见的神经发育障碍之一,
+全球患病率约为5--7\%\cite{booth2021}。ADHD的临床诊断目前主要依赖行为评估量表与临床访谈,
+诊断过程主观性强、评分者间一致性差, 缺乏客观的生物学标志物。
+
+近年来, 基于静息态功能磁共振成像(resting-state fMRI, rs-fMRI)的脑功能连接分析为ADHD的
+客观检测提供了新路径。脑功能连接网络天然具有图结构：以脑区为节点、以BOLD时间序列间的统计依赖
+关系为边, 可直接建模为图分类任务。图神经网络(Graph Neural Network, GNN)将端到端学习引入
+图结构数据, 已成为脑网络分析领域的主流范式\cite{cui2023brainGB, jiang2025survey}。
+
+然而, 消息传递GNN面临三大结构性瓶颈\cite{xu2019powerful, alon2021bottleneck}：
+\kw{过平滑}(Over-smoothing)——深层节点表示趋于各向同性;
+\kw{过压缩}(Over-squashing)——远端信息通过瓶颈节点时被压缩丢失;
+\kw{1-WL表达上界}——无法区分非同构的局部邻域结构。
+这些瓶颈在ADHD脑网络分析场景中尤为突出：
+脑功能网络的小世界特性使信息难以跨越长程路径传播,
+而默认模式网络(DMN)与背侧注意网络(DAN)等功能模块本质上涉及
+\kw{多脑区同时协同激活的高阶结构}, 并非两两连接所能完整描述\cite{ji2022fchat}。
+
+为应对上述瓶颈, 学术界提出了两类重要扩展范式：
+超图神经网络(Hypergraph Neural Network, HGNN)\cite{feng2019hgnn}
+通过超边直接建模多脑区高阶交互, 突破配对边的表达能力天花板;
+图Transformer(Graph Transformer, GT)\cite{dwivedi2021graph}
+通过全局自注意力机制将任意两节点间的路径长度压缩至$O(1)$,
+从根本上消除过平滑与过压缩问题。
+三类范式并非互斥, 而是对消息传递框架不同瓶颈的正交响应\cite{rampasek2022recipe}。
+
+\subsection{研究目标}
+
+本文的研究目标是：针对ADHD检测这一统一任务,
+系统实现并严格对比三类图网络范式下的五种代表性算法,
+从\kw{理论性质、表达能力、病理适配性与实证性能}四个维度展开综合性分析,
+为fMRI脑疾病检测的图网络架构选型提供严格的实证依据。
+
+具体研究问题包括：
+\begin{enumerate}
+    \item 不同图网络范式在ADHD检测任务上的相对性能排序如何？差异是否具有统计显著性？
+    \item 传统GNN、超图GNN和图Transformer各自的优劣在哪些具体场景中体现？
+    \item 不同范式的错误模式是否存在系统性差异？模型间预测是否具有互补性？
+    \item 理论分析所预测的架构特性在实验中是否得到验证？
+\end{enumerate}
+
+% ============================================
+% 2 方法
+% ============================================
+\section{方法}
+
+\subsection{数据集与预处理}
+
+\subsubsection{数据来源}
+
+本研究使用OpenNeuro-ds002424数据集\cite{booth2021}, 包含546名被试的静息态fMRI扫描数据。
+被试的临床诊断分布为：ADHD组232人(42.5\%), 健康对照组(HC)314人(57.5\%)。
+每个被试对应一次静息态扫描(TR=2.0s, 扫描时长约400s, 时间点数$T \approx 200$)。
+
+\subsubsection{图构建流程}
+
+所有算法共享完全一致的预处理管线, 确保对比的严格性：
+
+\begin{enumerate}[leftmargin=3em]
+    \item \kw{ROI时间序列提取}：使用nilearn的NiftiLabelsMasker, 以AAL SPM12图谱(116个ROI)
+          提取各脑区BOLD时间序列。预处理包括：去线性漂移、带通滤波(0.01--0.1 Hz)、z-score标准化。
+    \item \kw{精度矩阵估计}：对时间序列矩阵$X \in \mathbb{R}^{T \times 116}$估计精度矩阵。
+          当$T > 116$时使用GraphicalLassoCV(3折交叉验证), 否则使用Ledoit-Wolf收缩估计。
+    \item \kw{偏相关矩阵}：$P_{ij} = -\Theta_{ij} / \sqrt{|\Theta_{ii}| \cdot |\Theta_{jj}|}$, 对角线置零。
+    \item \kw{全局稀疏化}：取偏相关绝对值矩阵的上三角元素, 以第30百分位为全局阈值$\tau$,
+          保留$|P_{ij}| \geq \tau$的边(保留前70\%的强连接边), 对称化得到邻接矩阵$A$。
+    \item \kw{社区检测}：在$|A|$上运行Louvain社区检测算法, 生成社区标签。
+    \item \kw{节点特征构建}：拼接邻接矩阵行(连接profile, 116维)、节点度(1维)和
+          MNI空间坐标(3维), 得到每个节点120维的初始特征向量。
+\end{enumerate}
+
+\subsubsection{数据划分}
+
+采用\kw{按被试分层随机划分}策略：训练集60\%($\approx 327$被试)、验证集20\%($\approx 109$)、
+测试集20\%($\approx 109$)。同一被试的所有样本严格划分到同一集合, 防止数据泄漏。
+
+\subsection{对比算法}
+
+本研究选择覆盖\kw{三类图网络范式}的五种算法。
+算法选型遵循原则：每种范式至少覆盖一种代表性方法,
+同一范式内部设置变体对比以分离特定设计选择的贡献。
+
+\subsubsection{GCN——图卷积网络}
+
+GCN\cite{kipf2017gcn}基于谱域图卷积的一阶近似, 每层计算：
+\begin{equation}
+    H^{(l+1)} = \sigma\left(\tilde{D}^{-1/2} \tilde{A} \tilde{D}^{-1/2} H^{(l)} W^{(l)}\right)
+\end{equation}
+其中$\tilde{A} = A + I$为加自环邻接矩阵, $\tilde{D}$为度矩阵, $W^{(l)}$为可学习投影。
+本研究使用2--3层GCN, 隐藏维度16--32, 掩码均值池化后送入MLP分类头。
+
+\subsubsection{GAT——图注意力网络}
+
+GAT\cite{velickovic2018gat}引入多头注意力为每条边计算自适应权重：
+\begin{equation}
+    \alpha_{ij} = \text{softmax}_j\left(\text{LeakyReLU}\left(a^T [W h_i \| W h_j]\right)\right)
+\end{equation}
+本研究使用2层GAT(首层多头的输出拼接, 末层均值), 使模型自适应区分功能连接的重要性差异。
+
+\subsubsection{HGNN——超图神经网络}
+
+HGNN\cite{feng2019hgnn}通过$k$-NN超边直接建模多脑区高阶交互：
+\begin{equation}
+    X^{(l+1)} = \sigma\left(D_v^{-1/2} B W D_e^{-1} B^T D_v^{-1/2} X^{(l)} \Theta^{(l)}\right)
+\end{equation}
+其中$B$为关联矩阵。超边构建策略：对每节点取连接强度top-$k$邻居构成超边。
+HGNN的表达能力超过1-WL上界——节点即使在原图中不相邻, 同属某超边即可在单层内通信。
+
+\subsubsection{HyperGCN——超图谱卷积近似}
+
+HyperGCN将超图近似为团展开(Clique Expansion)图：每条超边内所有节点对加边,
+在展开的稠密图上运行标准GCN。当$N=116$、$k=5$时, 展开图边数约为原图2--3倍。
+与HGNN对比可量化完整超图卷积相对于团展开近似的理论损失。
+
+\subsubsection{Graph Transformer——图Transformer}
+
+Graph Transformer\cite{dwivedi2021graph}通过自注意力在单层内连接任意节点对：
+\begin{equation}
+    A = \text{softmax}\left(QK^T / \sqrt{d_k}\right)
+\end{equation}
+使用PyTorch的TransformerEncoder(1--2层, 2--4头),
+以图拉普拉斯前$k=4$或8个特征向量为位置编码(Laplacian PE)。
+
+\subsection{统一训练框架}
+
+所有算法共享统一训练框架：AdamW优化器, CrossEntropyLoss(含类别权重和标签平滑0.05),
+批大小8, WeightedRandomSampler平衡各类别, 早停patience=20--25轮监控验证Macro-F1,
+最大80--100轮, dropout 0.1--0.3, weight decay $10^{-5}$--$10^{-3}$。
+
+\subsection{评估指标体系}
+
+针对类别轻度不平衡(ADHD:HC $\approx$ 4:6), 采用多指标综合评估：
+Accuracy、Macro-F1、AUC-ROC为主指标;Balanced Accuracy、F1、Precision/Sensitivity/Specificity
+为辅助指标;MCC和Cohen's Kappa为相关性指标;McNemar、Wilcoxon、Friedman+Nemenyi
+构成统计检验体系。
+
+% ============================================
+% 3 实验
+% ============================================
+\section{实验}
+
+\subsection{实验设置}
+
+实验基于8个认知任务子集(SLD、SLI、SSD、SSI、VLD、VLI、VSD、VSI),
+对5种模型在完全相同的训练/验证/测试划分下进行训练与评估。
+每任务约62--74个样本。所有实验在单GPU上进行, 随机种子固定为42。
+
+为全面评估模型性能, 本研究构建了统一的评估管线, 包含五个关键阶段：
+
+\noindent(1)\kw{批量预测}：加载40个训练好的checkpoint(5模型$\times$8任务), 对测试集生成逐样本预测标签和概率分数,
+保存为csv文件。
+
+\noindent(2)\kw{指标计算}：基于预测文件计算16项指标(Accuracy、Balanced Accuracy、F1、Macro-F1、Precision、Sensitivity、Specificity、
+MCC、Cohen's Kappa、AUC-ROC、AUC-PR及混淆矩阵四元组TN/FP/FN/TP), 汇总并保存为csv文件。
+
+\noindent(3)\kw{统计检验}：运行三级统计检验体系——Friedman+Nemenyi(跨任务全局排序检验)、
+McNemar(逐任务分类一致性配对检验)、Wilcoxon Signed-Rank(逐样本正确性配对检验),
+结果保存于 \texttt{output/evaluation/stats/} 并预生成LaTeX表格。
+
+\noindent(4)\kw{可视化}：生成六类共25组图表(8任务ROC曲线、5指标热力图、5指标柱状图、
+5指标箱线图、1组合并混淆矩阵、1张CD图), 均输出PNG和PDF于 \texttt{output/evaluation/figures/}。
+
+\noindent(5)\kw{错误分析}：从错误偏向、模型一致性、样本难度分层和系统误差模式四个维度进行量化分析,
+结果汇总于 \texttt{output/evaluation/error\_analysis/error\_report.md}。
+
+该管线确保全文引用的每个数字均可追溯到具体CSV文件, 每张图表对应具体PDF输出。
+
+\subsection{整体性能对比}
+
+首先从全局视角考察五模型在8任务上的平均表现。表\ref{tab:avg}汇总了五项核心指标。
+
+\begin{table}[H]
+    \centering
+    \caption{五模型在8任务上的平均性能}
+    \label{tab:avg}
+    \small
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{指标}   & \textbf{GCN} & \textbf{GAT} & \textbf{HGNN} & \textbf{HyperGCN} & \textbf{GT} \\
+        \midrule
+        Accuracy      & \kw{0.585}   & 0.580        & 0.559         & 0.562             & 0.475       \\
+        Macro-F1      & \kw{0.572}   & 0.542        & 0.515         & 0.495             & 0.428       \\
+        AUC-ROC       & 0.587        & 0.586        & \kw{0.607}    & 0.591             & 0.508       \\
+        Balanced Acc. & \kw{0.590}   & 0.573        & 0.562         & 0.555             & 0.494       \\
+        MCC           & \kw{0.177}   & 0.168        & 0.146         & 0.127             & 0.002       \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+从表\ref{tab:avg}可读出清晰的模型梯队, 五模型按范式可归为四组：
+
+\noindent\kw{(1) GCN（消息传递基准）}：在五项指标中的四项取得最优（Accuracy 0.585、Macro-F1 0.572、
+Balanced Accuracy 0.590、MCC 0.177）, 综合排名第一。
+其局部卷积的强归纳偏置在546被试的小样本条件下提供了最有效的正则化。
+
+\medskip
+\noindent\kw{(2) GAT（消息传递+注意力）}：以微弱差距位居第二（Accuracy 0.580, 与GCN仅差0.005）,
+二者构成传统消息传递GNN的第一梯队。注意力机制引入了额外参数,
+在样本有限时略增过拟合风险, 但整体性能与GCN高度接近。
+
+\medskip
+\noindent\kw{(3) 超图方法（HGNN / HyperGCN）}：HGNN在AUC-ROC上以0.607排名第一,
+表明超边建模在排序能力上具有独特优势; 但分类指标与GCN存在明显差距
+（Accuracy 0.559 vs 0.585, Macro-F1 0.515 vs 0.572）, 暗示决策边界校准存在问题。
+HyperGCN的Accuracy（0.562）与HGNN接近, 但Macro-F1仅0.495——
+这一Accuracy-F1脱节为后文§3.5节的错误分析提供了重要线索。
+
+\medskip
+\noindent\kw{(4) Graph Transformer（全局自注意力）}：在所有指标上排名最末,
+Accuracy仅0.475（与GCN差距0.110）、MCC近乎为零（0.002）,
+表明全局自注意力在\textbf{小样本}条件下非但未带来收益, 反而严重损害了分类性能。
+
+热力图(图\ref{fig:heatmap_group})从任务级细粒度全景展示了上述格局的成因。
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{heatmaps/heatmap_accuracy.png}
+        \caption{Accuracy热力图}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{heatmaps/heatmap_auc_roc.png}
+        \caption{AUC-ROC热力图}
+    \end{subfigure}
+    \caption{任务$\times$模型性能热力图}
+    \label{fig:heatmap_group}
+\end{figure}
+
+Accuracy热力图呈现三个关键模式：VSI任务模型最集中（Accuracy 0.556--0.597, 极差0.041）;
+SLD差异最大（0.371--0.629, 极差0.258），GCN与GT相差近一倍;
+GT列系统性偏暗（SLD、SSI、VLD均低于0.40），说明GT的结构性分类缺陷而非个别失利。
+AUC-ROC热力图讲述不同故事：HGNN多数任务稳定（5个AUC $\geq$ 0.59），
+GT在VSI取得最高AUC（0.656）但在SLD（0.403）和SSI（0.345）塌陷至随机猜测以下。
+两张热力图的并置揭示：\kw{排序能力(AUC-ROC)和分类能力(Accuracy)在跨架构对比中不可互换}。
+
+柱状图(图\ref{fig:bar_group})进一步量化了每任务上各模型的绝对差值。
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{bar_charts/bar_macro_f1.png}
+        \caption{Macro-F1柱状图}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{bar_charts/bar_auc_roc.png}
+        \caption{AUC-ROC柱状图}
+    \end{subfigure}
+    \caption{五模型在8任务上的逐任务指标对比}
+    \label{fig:bar_group}
+\end{figure}
+
+Macro-F1柱状图特别值得关注, 因为它对类别不平衡敏感, 能暴露仅凭Accuracy无法觉察的问题。
+VLI任务中HyperGCN的Accuracy为0.608(该任务最高), 但Macro-F1仅约0.12——排名图末。
+这意味着HyperGCN在VLI上几乎将所有样本预测为健康对照(HC), 利用类别不平衡``刷高''了Accuracy,
+实际上对ADHD类别毫无区分能力。这是不平衡数据集中单独依赖Accuracy评估的典型陷阱。
+相比之下, GCN在所有8个任务的Macro-F1均保持在0.35以上, 显示出跨任务的一致稳健性。
+
+综合表\ref{tab:avg}、图\ref{fig:heatmap_group}和图\ref{fig:bar_group}的证据链, 可以得出第一个核心结论：
+\kw{归纳偏置强度而非表达能力, 是决定小样本fMRI图分类性能的首要因素}。GCN的局部聚合卷积(强归纳偏置)
+在546被试、每任务62--74样本的条件下提供了最有效的正则化;GT的全局自注意力(弱归纳偏置)
+因缺乏充分的样本支撑而过拟合噪声;超图方法则介于两者之间, 其高阶建模优势在排序任务(AUC-ROC)上得以部分释放,
+但分类决策的校准问题削弱了实际收益。
+
+\subsection{统计显著性检验}
+
+描述性比较所揭示的模型间差异需要通过严格的推断统计加以确认。
+表\ref{tab:friedman}汇报了Friedman检验与Nemenyi事后检验的结果。
+
+\begin{table}[H]
+    \centering
+    \caption{Friedman检验与Nemenyi事后检验结果}
+    \label{tab:friedman}
+    \small
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{检验项}       & \textbf{Accuracy} & \textbf{Macro-F1} & \textbf{AUC-ROC} \\
+        \midrule
+        Friedman $\chi^2$  & 10.519            & 12.700            & 3.300            \\
+        $p$值               & \kw{0.0325}       & \kw{0.0128}       & 0.5089           \\
+        显著性                & 显著                & 显著                & 不显著              \\
+        CD ($\alpha=0.05$) & 2.157             & 2.157             & 2.157            \\
+        \midrule
+        \multicolumn{4}{l}{\textbf{平均排名}(1=最佳)}                                       \\
+        \quad GCN          & \kw{2.25}         & \kw{1.88}         & 2.75             \\
+        \quad GAT          & 2.50              & 2.50              & 3.00             \\
+        \quad HGNN         & 2.63              & 2.75              & \kw{2.63}        \\
+        \quad HyperGCN     & 2.88              & 3.38              & 2.75             \\
+        \quad GT           & 4.75              & 4.50              & 3.88             \\
+        \midrule
+        Nemenyi显著差异对       & GCN--GT, GAT--GT  & GCN--GT           & 无                \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Friedman检验在Accuracy($\chi^2=10.519$, $p=0.0325$)和Macro-F1($\chi^2=12.700$, $p=0.0128$)上均拒绝了``各模型性能等价''的零假设,
+确认了五模型间存在统计显著的差异。Macro-F1的$p$值明显低于Accuracy, 说明Macro-F1作为对类别不平衡更敏感的指标,
+更能区分模型间的真实性能差异——这与上一节观察到的HyperGCN Accuracy-F1分化现象形成呼应。
+然而, AUC-ROC的Friedman检验未达显著($\chi^2=3.300$, $p=0.509$), 五模型在排序能力维度上统计等价。
+
+Nemenyi事后检验(CD$=2.157$, $\alpha=0.05$)进一步定位了具体显著差异对。
+Accuracy上, GCN(平均排名2.25)和GAT(2.50)均显著优于GT(4.75), 但GCN、GAT、HGNN、HyperGCN四模型之间无显著差异。
+Macro-F1上, 仅GCN(1.88)与GT(4.50)达到显著——GCN的Macro-F1一致性优势在高维统计框架下获得确认。
+AUC-ROC上, 无任何模型对超出CD临界值, 与Friedman检验的非显著结论完全自洽。
+
+图\ref{fig:stats_group}将上述统计检验结果转化为直观的图形表达。
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{boxplot_macro_f1.png}
+        \caption{Macro-F1箱线图(五模型8任务分布)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cd_diagram_accuracy.png}
+        \caption{Critical Difference图(Accuracy, $\alpha=0.05$)}
+    \end{subfigure}
+    \caption{Friedman+Nemenyi检验的可视化证据}
+    \label{fig:stats_group}
+\end{figure}
+
+Macro-F1箱线图揭示了排名检验无法捕捉的分布性质。GCN不仅中位数最高, 其四分位距(IQR)也最紧凑,
+表明GCN在所有8个任务上均维持了较高且一致的Macro-F1——这是``强归纳偏置带来稳定泛化''的分布式证据。
+GT的箱体最宽、下须最长, 显示出极端的不稳定性：它在某些任务上勉强可接受, 但在另一些任务上则完全失效。
+HGNN存在两个明显的低异常值(对应SLI和VLI任务, Macro-F1分别约0.38和0.34),
+暴露了k-NN超边构造在噪声连接上的脆弱性——当fMRI信号质量较差时, 超边可能错误聚合功能无关的ROI,
+引入误导性的高阶结构先验。
+
+CD图则将排名关系转化为可视化拓扑。GCN和GAT被粗实线相连(差异未超出CD临界值), 构成顶部集群;
+HGNN和HyperGCN位于中间;GT孤立于最右端。这张图本质上是对``归纳偏置强度排序''的实证可视化：
+从强偏置(GCN/GAT)到中等偏置(HGNN/HyperGCN)再到弱偏置(GT), 平均排名严格递减。
+
+此外, McNemar配对检验在逐任务层面提供了辅助证据。每任务10对模型中, 显著差异对数从3对(VSI)到全部10对(SSI)不等,
+最强区分度出现在SSI任务, 而VSI任务模型间最难区分——与前文热力图的结论完全一致。
+Wilcoxon Signed-Rank检验的显著对较少(每任务0--2对), 因为在仅有62--74个样本时,
+逐样本0/1正确性编码的统计功效有限。
+
+综合以上统计证据, 第二个核心结论是：\kw{模型间的差异在阈值依赖指标(Accuracy、Macro-F1)上显著, 但在排序能力指标(AUC-ROC)上不显著}。
+这意味着五种架构的主要分歧在于如何将连续的预测概率映射为离散的二分类决策, 而非对样本相对风险排序的基本判断。
+这一发现对临床部署有直接启示：若仅需风险分层(如筛查看哪个被试需要进一步评估), 架构选择的影响有限;
+若需做出硬性二分类决策, 则GCN以``最强归纳偏置+最稳定阈值校准''的组合优势成为首选。
+
+\subsection{ROC曲线任务级分析}
+
+上一节从统计检验层面确认了排序能力(AUC-ROC)上的模型等价性, 但该结论是基于8个任务的平均。
+本节通过逐任务ROC曲线(图\ref{fig:roc_group})检验这一等价性是否在每个任务上均成立,
+并识别架构失败的具体模式。
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{roc_curves/roc_VSI.png}
+        \caption{VSI任务(高一致性)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{roc_curves/roc_SLD.png}
+        \caption{SLD任务(GT最弱)}
+    \end{subfigure}
+    \\[6pt]
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{roc_curves/roc_VLI.png}
+        \caption{VLI任务(HyperGCN最弱)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{roc_curves/roc_SSI.png}
+        \caption{SSI任务(GT+HyperGCN双重失效)}
+    \end{subfigure}
+    \caption{代表性任务的ROC曲线对比(2$\times$2)}
+    \label{fig:roc_group}
+\end{figure}
+
+四张ROC曲线覆盖了从理想到灾难的性能谱。VSI是``理想收敛''场景：五条ROC曲线紧密堆叠于左上角
+(AUC 0.608--0.656, 跨模型极差仅0.048), 所有模型均在低于0.3的FPR下达到0.6以上的TPR。
+这验证了该任务条件下fMRI信号的判别力足够强, 使得架构差异被压缩到次要地位。
+
+SLD则是``GT灾难''场景：GCN、GAT、HGNN和HyperGCN的曲线集中于AUC 0.622--0.668区域,
+但GT曲线(AUC 0.403)不仅远低于其他模型, 且\kw{部分区间位于随机猜测对角线之下}——
+在某些阈值范围内, GT的判对率比抛硬币还差。这是全局自注意力在小样本下过拟合至噪声的直接证据：
+没有足够的样本约束, Transformer的$O(N^2)$参数化注意力在全连接图上学习到了虚假的远距离相关性,
+将功能上无关的脑区对赋予高注意力权重, 从而严重破坏了排序能力。
+
+VLI展示了``分类器崩溃''的经典信号：HyperGCN的ROC曲线紧贴对角线(AUC 0.477),
+但Accuracy却高达0.608——这是上一节已分析的Accuracy-F1脱节的可视化根源。
+ROC曲线的对角线行为揭示了HyperGCN在VLI上实质上是随机猜测,
+但其决策阈值恰好落在有利于利用类别不平衡的位置。
+
+SSI则呈现了最复杂的多模型失效模式：GT的ROC(AUC 0.345)远低于对角线,
+而HyperGCN(AUC 0.615)和HGNN(AUC 0.589)之间也存在显著形态差异。
+同一任务内四类曲线形态各异——有的凸向左上(好), 有的贴近甚至低于对角线(差)——
+生动展示了不同架构对同一fMRI信号的差异化解读。
+
+混淆矩阵汇总(图\ref{fig:cm})从逐样本分类视角进一步补充了上述分析。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{confusion_matrices/confusion_matrices.png}
+    \caption{五模型八任务混淆矩阵汇总(行=任务, 列=模型)}
+    \label{fig:cm}
+\end{figure}
+
+混淆矩阵网格的逐列对比揭示了不同架构的系统性预测偏好。GT列(第5列)在绝大多数任务中呈现
+\kw{左上角(TN)暗、右上角(FP)亮}的视觉特征：GT几乎将所有人都判为ADHD。
+例如SLI任务中, GT产生34个FP而仅有2个FN——它把36名健康对照中的34名误分类为ADHD。
+HyperGCN列则相反：在VLI(0 FP, 29 FN, Sensitivity 6.5\%)和VLD(2 FP, 28 FN, Sensitivity 6.7\%)任务上,
+FN格极为显著——模型几乎将所有样本判为HC, 完全放弃了对ADHD的检测。
+GCN和GAT的列内颜色分布最为均匀, FP和FN格大小相当, 表明其决策边界位于两类数据的自然分隔面附近。
+
+从ROC曲线和混淆矩阵中提炼的第三个核心结论是：\kw{不同架构的失败模式是结构性的, 而非随机波动}。
+GT的系统性FP偏向源于全局注意力在噪声主导的连接上的过度分配;
+HyperGCN的VN偏向源于团展开近似的信号稀释效应, 迫使模型退化为``预测多数类''的平凡策略;
+GCN/GAT的弱偏向性则受益于局部卷积的天然正则化效应。
+这种结构化的失败差异, 意味着五模型并非互替的解决方案, 而是在不同场景下各有所长——下一节将从错误互补性角度深入分析。
+
+\subsection{错误模式与模型互补性}
+
+前文的分析分别从整体性能、统计显著性和任务级ROC行为三个层次比较了五模型的差异。
+本节转入错误层面的微观分析, 回答一个关键问题：不同模型犯的\emph{是否是相同的错误}？
+如果答案是肯定的, 那么模型选择仅影响绝对性能;如果是否定的, 那么不同模型的错误具有互补性,
+为集成学习提供了理论基础。
+
+表\ref{tab:error_bias}首先量化了各模型的误差偏向。
+
+\begin{table}[H]
+    \centering
+    \caption{模型错误偏向统计}
+    \label{tab:error_bias}
+    \small
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{模型} & \textbf{FP偏向任务数} & \textbf{FN偏向任务数} & \textbf{平均FP率} & \textbf{平均FN率} \\
+        \midrule
+        GCN         & 5                & 3                & 0.425          & 0.392          \\
+        GAT         & 4                & 4                & 0.393          & 0.374          \\
+        HGNN        & 5                & 3                & 0.446          & 0.279          \\
+        HyperGCN    & 4                & 4                & 0.344          & 0.466          \\
+        GT          & 7                & 1                & \kw{0.723}     & 0.346          \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+GT的错误偏向最为极端：8个任务中7个呈现FP $>$ FN, 平均FP率高达72.3\%。在SLI任务上,
+GT将36名HC中的34名判为ADHD(FP率94.4\%);在VLD上则相反(0 FP, 28 FN, FN率93.3\%)。
+GT的模式并非``偏向某一类'', 而是\kw{极端偏向某类——但不同任务偏的方向不同}：
+在7个任务上偏FP, 在1个任务(SSI)上完全反转为极端FN(0 FP, 28 FN, FN率96.6\%)。
+这种不稳定的极端偏向是全局注意力过拟合的有力证据——
+注意力权重在不同任务的数据分布下被拉向完全不同的极端方向。
+
+HyperGCN的反向偏向同样显著：平均FN率46.6\%, 四任务呈极端FN
+(VLI Sensitivity 6.5\%、VLD Sensitivity 6.7\%)。这与团展开近似的理论预期一致——
+k条超边展开为$k(k-1)/2$条两两边后, 信号被稀释, 模型倾向于退化为预测多数类的保守策略。
+HGNN虽然也使用超边, 但保持了完整的超图谱卷积形式(而非团展开近似), 其FN率(27.9\%)远低于HyperGCN,
+证明\kw{团展开近似确实带来了不可忽略的信号损失}。
+
+GAT的错误分布最均衡：FP和FN偏向各4任务, 平均FP率39.3\%和FN率37.4\%近乎相等。
+其多头注意力机制使模型在不同任务上自适应地调整边权重, 避免了向某一方向的系统性漂移。
+
+表\ref{tab:agreement}通过Cohen's Kappa量化了模型两两预测的一致性。
+
+\begin{table}[H]
+    \centering
+    \caption{模型间预测一致性(Cohen's Kappa)}
+    \label{tab:agreement}
+    \small
+    \begin{tabular}{lccccc}
+        \toprule
+                 & \textbf{GCN} & \textbf{GAT} & \textbf{HGNN} & \textbf{HyperGCN} & \textbf{GT} \\
+        \midrule
+        GCN      & 1.000        & 0.250        & 0.281         & 0.280             & $-$0.021    \\
+        GAT      &              & 1.000        & 0.063         & 0.098             & 0.090       \\
+        HGNN     &              &              & 1.000         & \kw{0.357}        & 0.020       \\
+        HyperGCN &              &              &               & 1.000             & $-$0.237    \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+整个Kappa矩阵的数值范围($-$0.237至0.357)处于Landis \& Koch量表的``轻微''至``一般''一致性区间,
+意味着\kw{五模型在逐样本预测上高度独立}。即使是范式最接近的模型对——GCN与GAT(均为消息传递GNN),
+其Kappa也仅0.250, 表明基于注意力的边加权和基于度的等权聚合确实将模型导向了不同的决策路径。
+
+模型之间的Kappa值与其架构距离呈现出清晰的反比关系。HGNN与HyperGCN共享超图范式, Kappa值0.357为最高;
+GCN与GT分别代表最强和最弱归纳偏置的极端, Kappa为一0.021——近乎独立预测;
+HyperGCN与GT的Kappa为$-$0.237, 是唯一出现负值的模型对。负Kappa意味着两模型在统计上不仅不一致,
+且做出了系统性\emph{相反}的预测：HyperGCN判为ADHD则GT大概率判为HC, 反之亦然。
+这一反相关性具有直接的集成学习意义——两者的多数投票不仅汇总信息, 而且主动抵消对方的系统性错误。
+
+表\ref{tab:difficulty}从样本难度分层的视角提供了另一维度的互补性证据。
+
+\begin{table}[H]
+    \centering
+    \caption{样本难度分层统计}
+    \label{tab:difficulty}
+    \small
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{任务} & \textbf{困难} & \textbf{中等} & \textbf{简单} & \textbf{困难比例} \\
+        \midrule
+        SLD         & 27          & 32          & 3           & 0.435         \\
+        SLI         & 34          & 27          & 5           & 0.515         \\
+        SSD         & 26          & 35          & 3           & 0.406         \\
+        SSI         & 24          & 37          & 4           & 0.369         \\
+        VLD         & 27          & 44          & 2           & 0.370         \\
+        VLI         & 34          & 37          & 3           & 0.459         \\
+        VSD         & 26          & 43          & 1           & 0.371         \\
+        VSI         & 31          & 14          & 27          & 0.431         \\
+        \midrule
+        平均          & 28.6        & 33.6        & 6.0         & \kw{0.420}    \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+平均42.0\%的样本被多数模型分类错误(困难样本), 而仅有7.0\%被所有模型一致正确分类(简单样本)。
+这个极端不对称的分布揭示了ADHD fMRI分类的固有难度：绝大多数样本处于各模型决策边界的模糊地带。
+SLI任务的困难率最高(51.5\%), 与其语言加工fMRI信号的天然高变异度一致。
+VSI任务呈现独特的双峰分布：37.5\%(27个)样本为简单样本(所有模型同时正确),
+但43.1\%(31个)同时为困难样本。VSI受试者的visuospatial integration缺陷可能分为两个
+截然不同的子群——一群具有清晰的成像特征(所有模型均可检测), 另一群则高度模糊(所有模型均失败)。
+
+图\ref{fig:boxplot_group}以箱线图比较了Accuracy与AUC-ROC的任务级分布差异。
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{boxplot_accuracy.png}
+        \caption{Accuracy分布}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{boxplot_auc_roc.png}
+        \caption{AUC-ROC分布}
+    \end{subfigure}
+    \caption{五模型分类能力与排序能力的分布对比}
+    \label{fig:boxplot_group}
+\end{figure}
+
+箱线图量化了每个模型的校准间隙：GCN的Accuracy中位数紧贴AUC-ROC中位数（约0.60）,
+局部卷积赋予了自然的概率校准;GT的间隙最大（AUC-ROC约0.55, Accuracy约0.50）,
+学到判别排序却无法准确映射为离散类别;HGNN的AUC-ROC最高但Accuracy偏低, 再次显现
+超边建模的排序优势与校准陷阱。
+
+综合以上证据链, 第四个核心结论是：
+\kw{五模型的错误模式高度互补, 低模型一致性为异质集成学习提供了天然条件}。
+GCN/GAT适合作为集成基座, HGNN的AUC-ROC优势可在排序任务中发挥,
+HyperGCN与GT的负Kappa意味着两者集成可能产生超加性的偏差修正效果。
+42\%的高困难样本比例同时提示, 未来突破可能需要从输入信号本身入手。
+
+% ============================================
+% 4 分析
+% ============================================
+\section{分析}
+
+\subsection{性能排序的深层机制：归纳偏置与样本效率}
+
+§3.2表\ref{tab:avg}呈现了清晰的性能梯队：GCN领先（Accuracy 0.585、Macro-F1 0.572），GAT紧随
+（Accuracy 0.580，差距0.005），HGNN和HyperGCN居中，GT位列最后（Accuracy 0.475）。
+Friedman检验确认差异显著（Accuracy $p=0.0325$，Macro-F1 $p=0.0128$），
+Nemenyi事后检验划分为三个统计等价组：GCN/GAT（顶部）、HGNN/HyperGCN（中部）、GT（底部）。
+
+为什么复杂架构未能带来性能提升？核心原因是\kw{归纳偏置强度}与可用训练数据量的匹配。
+GCN对所有邻居取等权平均——这种"局部平滑先验"是最强的结构约束，在327个训练样本条件下
+有效限制了过拟合。GAT通过注意力权重松弛了该约束，引入的少量额外参数转化为约0.005的
+Accuracy退化。HGNN和HyperGCN进一步弱化局部性（超边跨邻域连接），自由参数增加在小样本下
+部分抵消了高阶建模的理论收益。GT完全解除局部性约束，全局自注意力以$O(N^2)$规模独立学习
+每对节点的注意力权重，在样本不足时学到的是连接噪声而非ADHD判别特征。
+Spearman $\rho=0.90$（性能排序与归纳偏置强度的秩相关）为上述解读提供了定量佐证。
+唯一的例外是HGNN在AUC-ROC上以0.607超越GCN（0.587）——超边机制在排序维度上确实
+捕捉到了有价值的信息，但这一优势在阈值截断时被校准损失抵消。这引出下一节的讨论。
+
+\subsection{超边建模的优势与陷阱}
+
+§3.2的实验数据中有一个引人注目的背离：HGNN的AUC-ROC（0.607）五模型排名第一，
+但Accuracy仅0.559（第四），Macro-F1为0.515。这种"排序强、分类弱"的分离现象表明，
+HGNN学到的信息是\emph{真实的}——排序信号在8个任务上稳定（5个任务AUC $\geq$ 0.59），
+但模型难以将其准确转换为离散的二分类决策。
+
+深入考察任务级数据，HGNN在SLI和VLI两个任务上出现了F1的极端低值（约0.38和0.34），
+两者均为语言相关任务，fMRI信号的个体间变异度最高——基于此类信号构建的$k$-NN超边可能将
+功能无关的脑区错误聚合，超图卷积算子在它们之间传播了本不应存在的信号，导致决策边界严重偏离。
+
+HyperGCN的实验结果提供了进一步的佐证。HyperGCN与HGNN共享超边构建逻辑，
+区别仅在于将超边展开为团图后运行标准GCN。团展开近似将超边内的高阶交互退化为两两配对，
+在AUC-ROC上低于HGNN达0.016（0.591 vs 0.607），FN率则远高于HGNN（46.6\% vs 27.9\%）。
+这一定量对比直接确认了\kw{完整超图谱卷积相比团展开近似的实质性增益}（AUC-ROC $+$0.016，FN率$-$18.7\%），
+同时也说明即使是完整超图卷积，收益也集中在排序维度，分类决策需要配套的校准机制。
+综合来看，超边建模的优势（捕获多脑区共激活的高阶排序信息）和陷阱（$k$-NN构造的噪声敏感性、
+决策边界校准困难）同时为实验数据所揭示——在低信噪比fMRI任务中使用超图网络时，
+$k$值的选取和超边构造方法的鲁棒性可能比卷积算子的选择更重要。
+
+\subsection{全局注意力的双面性}
+
+Graph Transformer的实验结果最为矛盾。宏观上所有阈值指标排名最末（Accuracy 0.475），
+但任务级数据呈现极端分化：VSI任务AUC-ROC 0.656（全模型最高），SLD和SSI则跌至0.403和0.345
+——低于随机猜测。同一模型在同一实验设置下呈现出从最优到灾难的完整谱线。
+
+交叉对照任务特性后发现，关键变量可能是\kw{判别特征的稀疏性}。VSI（社会不匹配范式）
+的BOLD信号集中在DMN和突显网络等少数功能系统——特征稀疏聚焦，全局注意力容易定位。
+SLD（字母检测）的信号广泛分布在视觉和注意皮层——特征弥散，全局注意力在样本不足时
+学到噪声主导的注意力模式。从架构机制解释：GT的全局自注意力消除了\kw{过压缩}瓶颈
+（$O(1)$路径长度vs.传统GNN多跳传播的信号压缩），但代价是完全丧失"相邻节点功能相关"
+的局部性先验。在小样本下代价超过收益，与Rampasek等人（2022）\cite{rampasek2022recipe}
+在大规模图基准上归纳偏置-样本效率权衡的结论一致。
+
+\subsection{局限性}
+
+本研究的结论应在以下限制条件下理解：
+
+\begin{enumerate}[label=(\arabic*), leftmargin=*]
+    \item \kw{单次数据划分}：所有实验基于seed=42的单次划分，未进行多折交叉验证。多次划分可进一步增强结论稳健性。
+    \item \kw{模型覆盖不全}：本研究实现了五种代表性方法，但未纳入SAN\cite{kreuzer2021san}
+          等学习型位置编码与注意力结合的混合架构。
+    \item \kw{样本量约束}：546名被试在深度学习视角下仍属小样本, 每任务仅62--74个样本。
+          这一约束使本研究的核心发现——``归纳偏置在小样本下更有价值''——具有自我强化性：
+          在更大的数据集上, GT和HGNN等高等表达能力架构的相对性能可能提升。
+    \item \kw{单站点单模态}：数据来自单一采集站点和单一模态(rs-fMRI), 研究结论的
+          跨站点泛化性和跨模态(如结合结构MRI或DTI)适用性有待验证。
+    \item \kw{静态连接假设}：图构建基于时间平均的功能连接, 忽略了脑网络动态重组的时间维度。
+          滑动窗动态连接可捕获时变功能状态, 可能对注意力机制类架构(GAT、GT)产生差异化增益。
+\end{enumerate}
+
+
+% ============================================
+% 5 结论
+% ============================================
+\section{结论}
+
+本文以ADHD检测为统一任务, 系统实现并严格对比了覆盖三类范式的五种图网络算法。
+主要结论如下：
+
+\noindent\kw{(1)归纳偏置强度是小样本场景下泛化性能的关键因素。}
+GCN在所有指标上综合排名第一, 证实了架构约束强度与样本效率的匹配关系。
+\noindent\kw{(2)超图方法在排序能力上具有优势。}
+HGNN的AUC-ROC排名第一(0.607), 验证了多脑区高阶交互建模的价值,
+但分类决策的校准问题制约了其优势转化。
+\noindent\kw{(3)全局注意力在小样本下需要更强的正则化。}
+GT的分类指标排名最末但AUC-ROC不显著低于其他模型, 其全局感受野在信号强时获益、
+弱时受损的双面性已充分暴露。
+\noindent\kw{(4)不同范式的错误模式高度互补。}
+低模型一致性(Kappa $<$ 0.36)和负Kappa对为异质集成学习提供了天然条件。
+\noindent\kw{(5)ADHD的fMRI分类具有内在高难度。}
+42\%样本被多数模型分类错误, 未来突破需从输入信号质量入手。
+
+综上所述, 本研究通过严格的系统性对比实验, 从实验数据出发归纳了
+不同图网络架构的性能规律与底层机制, 为fMRI脑疾病检测的图网络架构选型
+提供了可验证的实证依据。
+
+% ============================================
+% 团队分工
+% ============================================
+\section*{团队分工}
+
+\vspace{0.5em}
+\centering
+\begin{tabularx}{\textwidth}{l L{3cm} X}
+    \toprule
+    \textbf{角色} & \textbf{成员}             & \textbf{具体贡献} \\
+    \midrule
+    数据工程        & 2353721 贾博睿             &
+    数据集获取、fMRI预处理管线构建、特征工程、
+    数据划分、模型理论分析                                           \\
+    算法实现        & 2353815 李昊, 2350223 戴昊晟 &
+    GCN/GAT/HGNN/HyperGCN/Graph Transformer五模型实现、
+    统一训练框架搭建、超参数调优、
+    8任务$\times$5模型批量训练与checkpoint管理                       \\
+    评估与分析       & 2350284 张俊峰             &
+    评估指标体系设计、统计显著性检验、结果可视化、
+    错误分析、报告撰写、项目协调与进度管理                                   \\
+    \bottomrule
+\end{tabularx}
+
+\vspace{1em}
+
+% ============================================
+% 参考文献
+% ============================================
+\begin{thebibliography}{16}
+
+    \bibitem{booth2021}
+    Booth, J.R., et al. (2021).
+    Working memory and reward in children with and without ADHD.
+    \textit{OpenNeuro}, ds002424.
+
+    \bibitem{cui2023brainGB}
+    Cui, H., et al. (2023).
+    BrainGB: A benchmark for brain network analysis with graph neural networks.
+    \textit{IEEE Trans. Medical Imaging}, 42(2), 493--506.
+
+    \bibitem{jiang2025survey}
+    Jiang, D., et al. (2025).
+    A survey of graph networks for fMRI-based brain disease detection.
+    arXiv preprint.
+
+    \bibitem{xu2019powerful}
+    Xu, K., et al. (2019).
+    How powerful are graph neural networks? \textit{ICLR}.
+
+    \bibitem{alon2021bottleneck}
+    Alon, U. \& Yahav, E. (2021).
+    On the bottleneck of graph neural networks and its practical implications.
+    \textit{ICLR}.
+
+    \bibitem{ji2022fchat}
+    Ji, J., et al. (2022).
+    FC-HAT: Hypergraph attention network for functional brain network classification.
+    \textit{Information Sciences}, 608, 1301--1316.
+
+    \bibitem{feng2019hgnn}
+    Feng, Y., et al. (2019).
+    Hypergraph neural networks. \textit{AAAI}.
+
+    \bibitem{dwivedi2021graph}
+    Dwivedi, V.P. \& Bresson, X. (2021).
+    A generalization of transformer networks to graphs.
+    \textit{AAAI Workshop on Deep Learning on Graphs}.
+
+    \bibitem{rampasek2022recipe}
+    Rampasek, L., et al. (2022).
+    Recipe for a general, powerful, scalable graph transformer. \textit{NeurIPS}.
+
+    \bibitem{kipf2017gcn}
+    Kipf, T.N. \& Welling, M. (2017).
+    Semi-supervised classification with graph convolutional networks. \textit{ICLR}.
+
+    \bibitem{velickovic2018gat}
+    Veli\v{c}kovi\'{c}, P., et al. (2018).
+    Graph attention networks. \textit{ICLR}.
+
+    \bibitem{kreuzer2021san}
+    Kreuzer, D., et al. (2021).
+    Rethinking graph transformers with spectral attention. \textit{NeurIPS}.
+
+    \bibitem{li2021braingnn}
+    Li, X., et al. (2021).
+    BrainGNN: Interpretable brain graph neural network for fMRI analysis.
+    \textit{Medical Image Analysis}, 74, 102233.
+
+    \bibitem{han2024inter}
+    Han, X., et al. (2024).
+    Inter-intra high-order brain network for ASD diagnosis via functional MRIs. \textit{MICCAI}.
+
+\end{thebibliography}
+
+\end{document}

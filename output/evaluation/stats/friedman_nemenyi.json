@@ -1,0 +1,15 @@
+{
+  "metric": "auc_roc",
+  "friedman_statistic": 3.3000000000000114,
+  "friedman_p_value": 0.5089322578449971,
+  "friedman_significant": false,
+  "cd_threshold": 2.156673364234835,
+  "average_rankings": {
+    "hypergcn": 2.75,
+    "gcn": 2.75,
+    "hgnn": 2.625,
+    "gat": 3.0,
+    "gt": 3.875
+  },
+  "nemenyi_significant_pairs": []
+}

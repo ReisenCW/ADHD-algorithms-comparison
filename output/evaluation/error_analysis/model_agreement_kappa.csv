@@ -1,0 +1,11 @@
+﻿model_a,model_b,cohens_kappa
+gcn,gat,0.2504
+gcn,hgnn,0.2809
+gcn,hypergcn,0.28
+gcn,gt,-0.0206
+gat,hgnn,0.0631
+gat,hypergcn,0.0977
+gat,gt,0.0901
+hgnn,hypergcn,0.3571
+hgnn,gt,0.0202
+hypergcn,gt,-0.2372

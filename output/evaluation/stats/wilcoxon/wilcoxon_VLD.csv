@@ -1,0 +1,11 @@
+﻿model_a,model_b,statistic,p_value,significant
+gcn,hgnn,208.0000,0.3692,False
+gcn,hypergcn,314.5000,0.7389,False
+gcn,gt,253.5000,0.0516,False
+gat,gcn,255.0000,0.6015,False
+gat,hgnn,76.0000,0.6374,False
+gat,hypergcn,56.0000,0.7963,False
+gat,gt,513.0000,0.0394,True
+hgnn,hypergcn,15.0000,0.3173,False
+gt,hgnn,682.0000,0.0295,True
+gt,hypergcn,871.0000,0.0848,False

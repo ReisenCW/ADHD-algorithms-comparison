@@ -1,0 +1,16 @@
+\begin{table}[htbp]
+\centering
+\caption{McNemar检验p值矩阵 — 任务: VSI}
+\label{tab:mcnemar_VSI}
+\begin{tabular}{lccccc}
+\toprule
+ & GAT & GCN & GT & HGNN & HYPERGCN \\
+\midrule
+GAT & -- & 1.0000 & 0.3588 & 0.0809 & 0.2673 \\
+GCN & 1.0000 & -- & 0.0412$^*$ & 0.0162$^*$ & 0.4227 \\
+GT & 0.3588 & 0.0412$^*$ & -- & 0.4533 & 0.0339$^*$ \\
+HGNN & 0.0809 & 0.0162$^*$ & 0.4533 & -- & 0.0037$^*$ \\
+HYPERGCN & 0.2673 & 0.4227 & 0.0339$^*$ & 0.0037$^*$ & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
