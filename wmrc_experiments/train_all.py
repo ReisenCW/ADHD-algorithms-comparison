@@ -8,6 +8,12 @@ from .common import TASK_NAMES
 from .train import train_main
 
 
+# 模型名称及其对应论文
+# gcn      - GCN (Kipf & Welling, ICLR 2017)
+# gat      - GAT (Veličković et al., ICLR 2018)
+# hgnn     - HGNN (Feng et al., AAAI 2019)
+# hypergcn - HyperGCN (Chandra et al., NeurIPS 2020)
+# gt       - Graph Transformer (Dwivedi & Bresson, 2021)
 MODEL_NAMES = ["gcn", "gat", "hgnn", "hypergcn", "gt"]
 
 

@@ -32,6 +32,8 @@ class GraphClassifierHead(nn.Module):
 
 
 class GCNLayer(nn.Module):
+    """Graph Convolutional Layer (Kipf & Welling, ICLR 2017)"""
+
     def __init__(self, in_dim: int, out_dim: int) -> None:
         super().__init__()
         self.lin = nn.Linear(in_dim, out_dim)
@@ -42,6 +44,7 @@ class GCNLayer(nn.Module):
 
 
 class GCNModel(nn.Module):
+    """GCN: Semi-Supervised Classification with Graph Convolutional Networks (Kipf & Welling, ICLR 2017)"""
     def __init__(self, in_dim: int = 120, hidden_dim: int = 64, num_layers: int = 3, num_classes: int = 2, dropout: float = 0.3) -> None:
         super().__init__()
         layers = []
@@ -71,6 +74,8 @@ class GCNModel(nn.Module):
 
 
 class GATLayer(nn.Module):
+    """Graph Attention Layer (Veličković et al., ICLR 2018)"""
+
     def __init__(self, in_dim: int, out_dim: int, heads: int = 4, concat: bool = True, dropout: float = 0.3) -> None:
         super().__init__()
         self.heads = heads
@@ -117,7 +122,7 @@ class GATLayer(nn.Module):
 
 
 class GATModel(nn.Module):
-    """GAT模型，支持可配置层数"""
+    """GAT: Graph Attention Network (Veličković et al., ICLR 2018)"""
     def __init__(self, in_dim: int = 120, hidden_dim: int = 64, heads: int = 4, num_layers: int = 2, num_classes: int = 2, dropout: float = 0.3) -> None:
         super().__init__()
         self.layers = nn.ModuleList()
@@ -180,7 +185,7 @@ def build_hyperedges(adj: torch.Tensor, comm: torch.Tensor | None = None, topk: 
 
 
 class HGNNLayer(nn.Module):
-    """高效向量化的HGNN层"""
+    """Hypergraph Neural Network Layer (Feng et al., AAAI 2019)"""
     def __init__(self, in_dim: int, out_dim: int) -> None:
         super().__init__()
         self.lin = nn.Linear(in_dim, out_dim)
@@ -199,6 +204,7 @@ class HGNNLayer(nn.Module):
 
 
 class HGNNModel(nn.Module):
+    """HGNN: Hypergraph Neural Network (Feng et al., AAAI 2019)"""
     def __init__(self, in_dim: int = 120, hidden_dim: int = 64, num_classes: int = 2, dropout: float = 0.3, topk: int = 8) -> None:
         super().__init__()
         self.topk = topk
@@ -233,6 +239,7 @@ class HGNNModel(nn.Module):
 
 
 class HyperGCNModel(nn.Module):
+    """HyperGCN: Hypergraph Convolutional Network (Chandra et al., NeurIPS 2020)"""
     def __init__(self, in_dim: int = 120, hidden_dim: int = 64, num_layers: int = 3, num_classes: int = 2, dropout: float = 0.3, topk: int = 8) -> None:
         super().__init__()
         self.topk = topk
@@ -474,6 +481,15 @@ def build_model(
     num_classes: int = 2,
     rw_dim: int = 16,
 ) -> nn.Module:
+    """根据名称构建模型。
+
+    支持的模型:
+        gcn      - GCN: Semi-Supervised Classification with Graph Convolutional Networks (Kipf & Welling, ICLR 2017)
+        gat      - GAT: Graph Attention Network (Veličković et al., ICLR 2018)
+        hgnn     - HGNN: Hypergraph Neural Network (Feng et al., AAAI 2019)
+        hypergcn - HyperGCN: Hypergraph Convolutional Network (Chandra et al., NeurIPS 2020)
+        gt       - Graph Transformer: Generalization of Transformer to Graphs (Dwivedi & Bresson, 2021)
+    """
     name = model_name.lower()
     if name == "gcn":
         return GCNModel(in_dim=in_dim, hidden_dim=hidden_dim, num_layers=num_layers, num_classes=num_classes, dropout=dropout)

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 TASK_NAMES = ["SLD", "SLI", "SSD", "SSI", "VLD", "VLI", "VSD", "VSI"]
+# 模型名称: gcn=GCN(Kipf2017), gat=GAT(Velickovic2018), hgnn=HGNN(Feng2019), hypergcn=HyperGCN(Chandra2020), gt=GraphTransformer(Dwivedi2021)
 MODEL_NAMES = ["gcn", "gat", "hgnn", "hypergcn", "gt"]
 
 

@@ -70,7 +70,8 @@ def train_main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-root", default="WMRC_general")
     parser.add_argument("--task", default="all", help="one of SLD/SLI/SSD/SSI/VLD/VLI/VSD/VSI or all")
-    parser.add_argument("--model", required=True, choices=["gcn", "gat", "hgnn", "hypergcn", "gt"])
+    parser.add_argument("--model", required=True, choices=["gcn", "gat", "hgnn", "hypergcn", "gt"],
+                        help="gcn=GCN(Kipf2017), gat=GAT(Velickovic2018), hgnn=HGNN(Feng2019), hypergcn=HyperGCN(Chandra2020), gt=GraphTransformer(Dwivedi2021)")
     parser.add_argument("--out-dir", default="checkpoints")
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=32)
