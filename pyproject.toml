@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "markitdown[pptx]>=0.1.6",
     "matplotlib>=3.10.9",
     "scikit-learn>=1.8.0",
     "scikit-posthocs>=0.14.0",
