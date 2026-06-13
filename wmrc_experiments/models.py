@@ -403,7 +403,70 @@ class GraphTransformerModel(nn.Module):
     3. Readout: masked mean pooling over nodes
     4. Classification head
     """
+    def __init__(self, hidden_dim: int, num_heads: int = 4, dropout: float = 0.3) -> None:
+        super().__init__()
+        self.num_heads = num_heads
+        self.head_dim = hidden_dim // num_heads
+        self.qkv = nn.Linear(hidden_dim, hidden_dim * 3)
+        self.out_proj = nn.Linear(hidden_dim, hidden_dim)
 
+        # 邻接矩阵 -> 注意力偏置 (边权重映射到每个head)
+        self.edge_bias = nn.Linear(1, num_heads)
+
+        self.norm1 = nn.LayerNorm(hidden_dim)
+        self.norm2 = nn.LayerNorm(hidden_dim)
+        self.ffn = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim * 4),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim * 4, hidden_dim),
+            nn.Dropout(dropout),
+        )
+        self.attn_dropout = nn.Dropout(dropout)
+
+    def forward(self, x: torch.Tensor, adj: torch.Tensor, key_padding_mask: torch.Tensor | None = None) -> torch.Tensor:
+        bsz, n, _ = x.shape
+
+        # Pre-norm
+        normed = self.norm1(x)
+
+        # QKV
+        qkv = self.qkv(normed).reshape(bsz, n, 3, self.num_heads, self.head_dim)
+        qkv = qkv.permute(2, 0, 3, 1, 4)  # [3, B, H, N, D]
+        q, k, v = qkv[0], qkv[1], qkv[2]
+
+        # 标准注意力分数
+        scale = self.head_dim ** -0.5
+        attn = torch.matmul(q, k.transpose(-2, -1)) * scale  # [B, H, N, N]
+
+        # 邻接矩阵偏置: 边权重 -> 每个head的加性偏置
+        edge_feat = adj.abs().unsqueeze(-1)  # [B, N, N, 1]
+        edge_bias = self.edge_bias(edge_feat).permute(0, 3, 1, 2)  # [B, H, N, N]
+        attn = attn + edge_bias
+
+        # Mask
+        if key_padding_mask is not None:
+            # key_padding_mask: [B, N], True=padding
+            pad_mask = key_padding_mask.unsqueeze(1).unsqueeze(2)  # [B, 1, 1, N]
+            attn = attn.masked_fill(pad_mask, float('-inf'))
+
+        attn = F.softmax(attn, dim=-1)
+        attn = self.attn_dropout(attn)
+
+        out = torch.matmul(attn, v)  # [B, H, N, D]
+        out = out.transpose(1, 2).contiguous().view(bsz, n, -1)
+        out = self.out_proj(out)
+
+        x = x + out
+        x = x + self.ffn(self.norm2(x))
+        return x
+
+
+class GraphTransformerModel(nn.Module):
+    """Graph Transformer: Generalization of Transformer to Graphs (Dwivedi & Bresson, 2021)
+
+    改进: 将邻接矩阵作为注意力偏置注入每层, 使Transformer感知图结构。
+    """
     def __init__(
         self,
         in_dim: int = 120,
@@ -417,26 +480,17 @@ class GraphTransformerModel(nn.Module):
     ) -> None:
         super().__init__()
         self.pe_dim = pe_dim
-        self.rw_dim = rw_dim
-        # Input encoders: project each encoding type into hidden_dim
-        self.node_encoder = nn.Sequential(
-            nn.Linear(in_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-        )
-        self.pe_encoder = nn.Linear(pe_dim, hidden_dim) if pe_dim > 0 else None
-        self.rw_encoder = nn.Linear(rw_dim, hidden_dim) if rw_dim > 0 else None
-        self.input_norm = nn.LayerNorm(hidden_dim)
-        self.input_dropout = nn.Dropout(dropout)
+        self.lin_in = nn.Linear(in_dim, hidden_dim)
+        self.pe_proj = nn.Linear(pe_dim, hidden_dim) if pe_dim > 0 else None
+        self.norm = nn.LayerNorm(hidden_dim)
 
-        # GPS layers (hybrid MPNN + Transformer)
-        self.gps_layers = nn.ModuleList(
-            [GPSLayer(hidden_dim, num_heads, dropout) for _ in range(num_layers)]
-        )
+        layers = []
+        for _ in range(num_layers):
+            layers.append(GraphTransformerLayer(hidden_dim, num_heads, dropout))
+        self.layers = nn.ModuleList(layers)
 
-        self.head = GraphClassifierHead(
-            hidden_dim, num_classes=num_classes, dropout=0.5
-        )
+        self.dropout = dropout
+        self.head = GraphClassifierHead(hidden_dim, num_classes=num_classes, dropout=0.5)
 
     def forward(
         self,
@@ -447,24 +501,15 @@ class GraphTransformerModel(nn.Module):
         mask: torch.Tensor | None = None,
         rws: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        # Input encoding: project and sum node + PE + RWSE features
-        x = self.node_encoder(x)
-        if pe is not None and self.pe_encoder is not None:
-            x = x + self.pe_encoder(pe)
-        if rws is not None and rws.size(-1) > 0 and self.rw_encoder is not None:
-            x = x + self.rw_encoder(rws)
-        x = self.input_norm(x)
-        x = self.input_dropout(x)
+        x = self.lin_in(x)
+        if pe is not None and self.pe_proj is not None:
+            x = x + self.pe_proj(pe)
+        x = self.norm(x)
 
-        # Mask node features for padded positions
-        if mask is not None:
-            x = x * mask.unsqueeze(-1).to(dtype=x.dtype)
+        key_padding_mask = ~mask if mask is not None else None
+        for layer in self.layers:
+            x = layer(x, adj, key_padding_mask=key_padding_mask)
 
-        # GPS layers
-        for layer in self.gps_layers:
-            x = layer(x, adj, mask)
-
-        # Graph-level readout
         g = masked_mean(x, mask)
         return self.head(g)
 
