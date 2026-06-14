@@ -1,66 +1,66 @@
 {
   "SLD": {
     "total": 62,
-    "hard": 27,
-    "medium": 32,
-    "easy": 3,
-    "hard_ratio": 0.43548387096774194,
-    "easy_ratio": 0.04838709677419355
+    "hard": 11,
+    "medium": 40,
+    "easy": 11,
+    "hard_ratio": 0.1774193548387097,
+    "easy_ratio": 0.1774193548387097
   },
   "SLI": {
     "total": 66,
-    "hard": 34,
-    "medium": 27,
+    "hard": 9,
+    "medium": 52,
     "easy": 5,
-    "hard_ratio": 0.5151515151515151,
+    "hard_ratio": 0.13636363636363635,
     "easy_ratio": 0.07575757575757576
   },
   "SSD": {
     "total": 64,
-    "hard": 26,
-    "medium": 35,
-    "easy": 3,
-    "hard_ratio": 0.40625,
-    "easy_ratio": 0.046875
+    "hard": 20,
+    "medium": 39,
+    "easy": 5,
+    "hard_ratio": 0.3125,
+    "easy_ratio": 0.078125
   },
   "SSI": {
     "total": 65,
-    "hard": 24,
-    "medium": 37,
-    "easy": 4,
-    "hard_ratio": 0.36923076923076925,
-    "easy_ratio": 0.06153846153846154
+    "hard": 19,
+    "medium": 39,
+    "easy": 7,
+    "hard_ratio": 0.2923076923076923,
+    "easy_ratio": 0.1076923076923077
   },
   "VLD": {
     "total": 73,
-    "hard": 27,
-    "medium": 44,
-    "easy": 2,
-    "hard_ratio": 0.3698630136986301,
-    "easy_ratio": 0.0273972602739726
+    "hard": 19,
+    "medium": 48,
+    "easy": 6,
+    "hard_ratio": 0.2602739726027397,
+    "easy_ratio": 0.0821917808219178
   },
   "VLI": {
     "total": 74,
-    "hard": 34,
-    "medium": 37,
-    "easy": 3,
-    "hard_ratio": 0.4594594594594595,
-    "easy_ratio": 0.04054054054054054
+    "hard": 15,
+    "medium": 55,
+    "easy": 4,
+    "hard_ratio": 0.20270270270270271,
+    "easy_ratio": 0.05405405405405406
   },
   "VSD": {
     "total": 70,
-    "hard": 26,
-    "medium": 43,
-    "easy": 1,
-    "hard_ratio": 0.37142857142857144,
-    "easy_ratio": 0.014285714285714285
+    "hard": 18,
+    "medium": 48,
+    "easy": 4,
+    "hard_ratio": 0.2571428571428571,
+    "easy_ratio": 0.05714285714285714
   },
   "VSI": {
     "total": 72,
-    "hard": 31,
-    "medium": 14,
-    "easy": 27,
-    "hard_ratio": 0.4305555555555556,
-    "easy_ratio": 0.375
+    "hard": 12,
+    "medium": 51,
+    "easy": 9,
+    "hard_ratio": 0.16666666666666666,
+    "easy_ratio": 0.125
   }
 }

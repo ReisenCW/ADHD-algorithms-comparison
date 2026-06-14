@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023) (preloaded format=xelatex 2024.1.19)  13 JUN 2026 23:09
+This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023) (preloaded format=xelatex 2024.1.19)  14 JUN 2026 15:19
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -740,10 +740,6 @@ File: ../output/evaluation/figures//cd_diagram_accuracy.png Graphic file (type b
  [9] [10]
 File: ../output/evaluation/figures//roc_curves/roc_VSI.png Graphic file (type bmp)
 <../output/evaluation/figures//roc_curves/roc_VSI.png>
-File: ../output/evaluation/figures//roc_curves/roc_SLD.png Graphic file (type bmp)
-<../output/evaluation/figures//roc_curves/roc_SLD.png>
-File: ../output/evaluation/figures//roc_curves/roc_VLI.png Graphic file (type bmp)
-<../output/evaluation/figures//roc_curves/roc_VLI.png>
 File: ../output/evaluation/figures//roc_curves/roc_SSI.png Graphic file (type bmp)
 <../output/evaluation/figures//roc_curves/roc_SSI.png>
  [11]
@@ -757,22 +753,25 @@ File: ../output/evaluation/figures//boxplot_accuracy.png Graphic file (type bmp)
 <../output/evaluation/figures//boxplot_accuracy.png>
 File: ../output/evaluation/figures//boxplot_auc_roc.png Graphic file (type bmp)
 <../output/evaluation/figures//boxplot_auc_roc.png>
- [16] [17] [18]
-Underfull \hbox (badness 10000) in paragraph at lines 828--828
+ [16] [17]
+Underfull \hbox (badness 10000) in paragraph at lines 821--821
 []|\TU/lmr/m/n/12 GCN/GAT/HGNN/HyperGCN/Graph Trans-
  []
 
-[19] [20] (./report.aux)
+[18] [19] [20] (./report.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
 Package rerunfilecheck Info: File `report.out' has not changed.
-(rerunfilecheck)             Checksum: E4C248ECB0AA8A9C5DD2C46FA456B3A7;3859.
+(rerunfilecheck)             Checksum: 93FE175A447B9601FDCCA98E28B7F86F;3988.
  ) 
 Here is how much of TeX's memory you used:
- 19305 strings out of 476683
- 425825 string characters out of 5802283
+ 19292 strings out of 476683
+ 425313 string characters out of 5802283
  1868012 words of memory out of 5000000
- 39235 multiletter control sequences out of 15000+600000
+ 39224 multiletter control sequences out of 15000+600000
  523409 words of font info for 111 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 89i,13n,97p,1239b,563s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 89i,12n,97p,1239b,647s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
 Output written on report.pdf (21 pages).
