@@ -25,6 +25,7 @@ class GraphRecord:
     adj: torch.Tensor
     community_labels: torch.Tensor
     pe: torch.Tensor
+    rws: torch.Tensor  # Random Walk Structural Encoding
     node_mask: torch.Tensor
 
 
@@ -79,8 +80,9 @@ def pad_graph_tensors(
     x: torch.Tensor,
     comm: torch.Tensor,
     pe: torch.Tensor,
+    rws: torch.Tensor | None = None,
     target_nodes: int = DEFAULT_NUM_NODES,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor | None]:
     n = adj.size(0)
     if n > target_nodes:
         raise ValueError(f"graph has {n} nodes, exceeds target size {target_nodes}")
@@ -104,18 +106,27 @@ def pad_graph_tensors(
 
     pe_pad = torch.zeros(target_nodes, pe.size(1), dtype=pe.dtype)
     pe_pad[:n] = pe
-    return adj_pad, x_pad, comm_pad, pe_pad, node_mask
+
+    rws_pad = None
+    if rws is not None and rws.numel() > 0:
+        rws_pad = torch.zeros(target_nodes, rws.size(1), dtype=rws.dtype)
+        rws_pad[:n] = rws
+    return adj_pad, x_pad, comm_pad, pe_pad, node_mask, rws_pad
 
 
-def record_from_path(path: Path, pe_dim: int = 8, feature_mode: str = "full") -> GraphRecord:
+def record_from_path(
+    path: Path, pe_dim: int = 8, rw_dim: int = 16, feature_mode: str = "full"
+) -> GraphRecord:
     sample = _load_pt(path)
     x = build_node_features_mode(sample, feature_mode=feature_mode)
     pe = laplacian_pe(sample["adjacency"], pe_dim=pe_dim)
-    adj, x, comm, pe, node_mask = pad_graph_tensors(
+    rws = random_walk_se(sample["adjacency"], rw_dim=rw_dim)
+    adj, x, comm, pe, node_mask, rws = pad_graph_tensors(
         sample["adjacency"].float(),
         x,
         sample["community_labels"].long(),
         pe,
+        rws=rws,
     )
     return GraphRecord(
         path=str(path),
@@ -126,6 +137,7 @@ def record_from_path(path: Path, pe_dim: int = 8, feature_mode: str = "full") ->
         adj=adj,
         community_labels=comm,
         pe=pe,
+        rws=rws,
         node_mask=node_mask,
     )
 
@@ -167,6 +179,11 @@ def signed_normalized_adjacency(adj: torch.Tensor, add_self_loops: bool = True) 
 
 
 def laplacian_pe(adj: torch.Tensor, pe_dim: int = 8) -> torch.Tensor:
+    """Compute Laplacian positional encoding (eigenvectors of normalized Laplacian).
+
+    Uses the GPS paper's approach: eigenvectors of L_norm = I - D^{-1/2} A D^{-1/2},
+    with random sign flip for augmentation stability.
+    """
     a = adj.abs().float()
     n = a.size(0)
     if pe_dim <= 0:
@@ -183,12 +200,37 @@ def laplacian_pe(adj: torch.Tensor, pe_dim: int = 8) -> torch.Tensor:
     if pe.size(1) < pe_dim:
         pad = torch.zeros(n, pe_dim - pe.size(1), dtype=a.dtype)
         pe = torch.cat([pe, pad], dim=1)
+    # Sign-flip to a consistent canonical orientation per eigenvector
     for i in range(pe.size(1)):
         col = pe[:, i]
         idx = torch.argmax(col.abs())
         if col[idx] < 0:
             pe[:, i] = -col
     return pe
+
+
+def random_walk_se(adj: torch.Tensor, rw_dim: int = 16) -> torch.Tensor:
+    """Compute Random Walk Structural Encoding (RWSE).
+
+    From GPS paper: diagonal of the m-step random walk matrix.
+    For each step k (1..rw_dim), computes diag((D^{-1} A)^k).
+    This encodes local structural information (e.g. if a node
+    is part of a k-cycle, its return probability after k steps differs).
+    """
+    a = adj.abs().float()
+    n = a.size(0)
+    if rw_dim <= 0:
+        return torch.zeros(n, 0, dtype=a.dtype)
+    deg = a.sum(dim=1).clamp_min(1.0)
+    deg_inv = 1.0 / deg
+    # Transition matrix: P = D^{-1} A
+    p = deg_inv.unsqueeze(1) * a
+    se = []
+    pk = torch.eye(n, dtype=a.dtype, device=a.device)
+    for _ in range(rw_dim):
+        pk = pk @ p
+        se.append(torch.diag(pk))
+    return torch.stack(se, dim=1)  # [N, rw_dim]
 
 
 class WMRCGraphDataset(Dataset):
@@ -198,18 +240,22 @@ class WMRCGraphDataset(Dataset):
         task_filter: str | None = None,
         max_samples: int | None = None,
         pe_dim: int = 8,
+        rw_dim: int = 16,
         feature_mode: str = "full",
     ) -> None:
         self.data_root = Path(data_root)
         self.task_filter = task_filter or "all"
         self.pe_dim = pe_dim
+        self.rw_dim = rw_dim
         self.feature_mode = feature_mode
         files = list_graph_files(self.data_root, self.task_filter)
         if max_samples is not None:
             files = files[:max_samples]
         self.records: list[GraphRecord] = []
         for path in files:
-            self.records.append(record_from_path(path, pe_dim=pe_dim, feature_mode=feature_mode))
+            self.records.append(record_from_path(
+                path, pe_dim=pe_dim, rw_dim=rw_dim, feature_mode=feature_mode
+            ))
 
     def __len__(self) -> int:
         return len(self.records)
@@ -223,6 +269,7 @@ def collate_graphs(batch: Sequence[GraphRecord]) -> dict:
         "x": torch.stack([item.x for item in batch], dim=0),
         "adj": torch.stack([item.adj for item in batch], dim=0),
         "pe": torch.stack([item.pe for item in batch], dim=0),
+        "rws": torch.stack([item.rws for item in batch], dim=0),
         "comm": torch.stack([item.community_labels for item in batch], dim=0),
         "mask": torch.stack([item.node_mask for item in batch], dim=0),
         "y": torch.tensor([item.label for item in batch], dtype=torch.long),

@@ -39,7 +39,8 @@ def predict_main(argv=None):
             files = sorted(input_path.glob("**/*.pt"))
         else:
             files = [input_path]
-        records = [record_from_path(f, pe_dim=ckpt["config"]["pe_dim"]) for f in files]
+        rw_dim = ckpt["config"].get("rw_dim", 16)
+        records = [record_from_path(f, pe_dim=ckpt["config"]["pe_dim"], rw_dim=rw_dim) for f in files]
         loader_data = {
             "x": torch.stack([r.x for r in records]),
             "adj": torch.stack([r.adj for r in records]),
@@ -50,7 +51,8 @@ def predict_main(argv=None):
         batches = [loader_data]
         meta_records = records
     else:
-        dataset = WMRCGraphDataset(args.data_root, task_filter=task, pe_dim=ckpt["config"]["pe_dim"])
+        rw_dim = ckpt["config"].get("rw_dim", 16)
+        dataset = WMRCGraphDataset(args.data_root, task_filter=task, pe_dim=ckpt["config"]["pe_dim"], rw_dim=rw_dim)
         split = split_by_subject(dataset, seed=ckpt.get("seed", 42))
         indices = split["indices"][args.split] if args.split != "all" else list(range(len(dataset)))
         subset = torch.utils.data.Subset(dataset, indices)
@@ -64,9 +66,12 @@ def predict_main(argv=None):
             x = batch["x"].to(device)
             adj = batch["adj"].to(device)
             pe = batch["pe"].to(device)
+            rws = batch.get("rws")
+            if rws is not None:
+                rws = rws.to(device)
             comm = batch["comm"].to(device)
             mask = batch["mask"].to(device)
-            logits = model(x, adj, pe=pe, comm=comm, mask=mask)
+            logits = model(x, adj, pe=pe, rws=rws, comm=comm, mask=mask)
             probs = torch.softmax(logits, dim=1).cpu()
             pred = probs.argmax(dim=1)
             for i in range(probs.size(0)):

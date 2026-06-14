@@ -19,6 +19,7 @@ BASE_CONFIG = {
     "heads": 2,
     "dropout": 0.1,
     "pe_dim": 8,
+    "rw_dim": 16,
     "topk": 8,
     "monitor": "val_macro_f1",
     "feature_mode": "full",
@@ -50,9 +51,10 @@ MODEL_CANDIDATES = {
         {"hidden_dim": 32, "topk": 8, "dropout": 0.1, "lr": 2e-3},
     ],
     "gt": [
-        {"hidden_dim": 16, "num_layers": 1, "heads": 2, "dropout": 0.2, "lr": 1e-3, "pe_dim": 8},
-        {"hidden_dim": 32, "num_layers": 1, "heads": 2, "dropout": 0.3, "lr": 1e-3, "pe_dim": 8},
-        {"hidden_dim": 16, "num_layers": 2, "heads": 2, "dropout": 0.3, "lr": 5e-4, "pe_dim": 4},
+        {"hidden_dim": 32, "num_layers": 4, "heads": 4, "dropout": 0.15, "lr": 1e-3, "pe_dim": 8, "rw_dim": 16, "weight_decay": 1e-4},
+        {"hidden_dim": 48, "num_layers": 4, "heads": 4, "dropout": 0.15, "lr": 1e-3, "pe_dim": 8, "rw_dim": 16, "weight_decay": 1e-4},
+        {"hidden_dim": 32, "num_layers": 6, "heads": 4, "dropout": 0.1, "lr": 5e-4, "pe_dim": 8, "rw_dim": 16, "weight_decay": 1e-3},
+        {"hidden_dim": 64, "num_layers": 4, "heads": 4, "dropout": 0.15, "lr": 5e-4, "pe_dim": 8, "rw_dim": 16, "weight_decay": 1e-4},
     ],
 }
 
@@ -81,6 +83,8 @@ def config_to_args(config: dict) -> list[str]:
         str(config["dropout"]),
         "--pe-dim",
         str(config["pe_dim"]),
+        "--rw-dim",
+        str(config.get("rw_dim", 16)),
         "--topk",
         str(config["topk"]),
         "--monitor",
@@ -89,6 +93,7 @@ def config_to_args(config: dict) -> list[str]:
         config["feature_mode"],
         "--label-smoothing",
         str(config["label_smoothing"]),
+        "--cosine-schedule",
     ]
     if config["use_class_weight"]:
         args.append("--use-class-weight")

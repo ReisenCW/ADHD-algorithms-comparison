@@ -60,6 +60,7 @@ class GCNModel(nn.Module):
         pe: torch.Tensor | None = None,
         comm: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
+        rws: torch.Tensor | None = None,
     ) -> torch.Tensor:
         for layer in self.layers:
             x = layer(x, adj)
@@ -141,6 +142,7 @@ class GATModel(nn.Module):
         pe: torch.Tensor | None = None,
         comm: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
+        rws: torch.Tensor | None = None,
     ) -> torch.Tensor:
         for i, layer in enumerate(self.layers):
             x = F.elu(layer(x, adj, mask=mask))
@@ -212,6 +214,7 @@ class HGNNModel(nn.Module):
         pe: torch.Tensor | None = None,
         comm: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
+        rws: torch.Tensor | None = None,
     ) -> torch.Tensor:
         hs = []
         max_n = adj.size(1)
@@ -257,6 +260,7 @@ class HyperGCNModel(nn.Module):
         pe: torch.Tensor | None = None,
         comm: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
+        rws: torch.Tensor | None = None,
     ) -> torch.Tensor:
         ads = []
         max_n = adj.size(1)
@@ -274,34 +278,158 @@ class HyperGCNModel(nn.Module):
         return self.head(g)
 
 
+class GINELayer(nn.Module):
+    """GINE (Graph Isomorphism Network with Edge features) layer.
+
+    Used as the MPNN component in GPS layers.
+    Handles signed adjacency: edge features encode both connectivity and sign.
+    """
+
+    def __init__(self, hidden_dim: int, dropout: float = 0.1) -> None:
+        super().__init__()
+        self.eps = nn.Parameter(torch.zeros(1))
+        self.edge_scale = nn.Parameter(torch.ones(1))
+        self.mlp = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim * 2),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim * 2, hidden_dim),
+        )
+
+    def forward(
+        self, x: torch.Tensor, adj: torch.Tensor, mask: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        # x: [B, N, d], adj: [B, N, N] (signed adjacency)
+        # Message from neighbors with edge weights as features
+        # m_ij = ReLU(x_j * w_ij_sign + edge_scale * |w_ij|)
+        # Aggregate: sum over neighbors
+        adj_abs = adj.abs()
+        adj_sign = torch.sign(adj)
+        # Edge feature: sign-aware weight
+        e = adj_sign * adj_abs * self.edge_scale  # [B, N, N]
+        # Vectorized neighbor message aggregation
+        # For each node i: sum_{j} ReLU(x_j + e_ij)
+        # We broadcast x and use adjacency as the mask
+        bsz, n, d = x.shape
+        # Use mask to zero out padded nodes before message passing
+        if mask is not None:
+            m = mask.unsqueeze(-1).to(dtype=x.dtype)  # [B, N, 1]
+            x_masked = x * m
+        else:
+            x_masked = x
+        # Expand for message: x_j + e_ij for all i,j
+        # Instead of materializing full [B,N,N,d], compute via masked matmul
+        adj_mask = (adj_abs > 0).to(dtype=x.dtype)  # [B, N, N]
+        if mask is not None:
+            node_mask_2d = mask.unsqueeze(1) & mask.unsqueeze(2)  # [B, N, N]
+            adj_mask = adj_mask * node_mask_2d.to(dtype=adj_mask.dtype)
+        # messages: X_j broadcast, masked by adjacency
+        # agg_i = sum_j adj_mask_ij * ReLU(x_j * sign_ij + scale * |w_ij|)
+        sign_component = x_masked.unsqueeze(2) * adj_sign.unsqueeze(-1)  # [B, N, N, d]
+        abs_component = e.unsqueeze(-1)  # [B, N, N, 1]
+        msg = F.relu(sign_component + abs_component)  # [B, N, N, d]
+        agg = (msg * adj_mask.unsqueeze(-1)).sum(dim=2)  # [B, N, d]
+        # GINE update: (1+eps)*x + agg
+        out = (1.0 + self.eps) * x_masked + agg
+        return self.mlp(out)
+
+
+class GPSLayer(nn.Module):
+    """One GPS layer from Rampášek et al. NeurIPS 2022.
+
+    Each layer combines:
+    - Local MPNN (GINE) acting on graph adjacency with edge features
+    - Global self-attention (no edge features in attention)
+    - 2-layer MLP fusion with residual connections and LayerNorm
+    """
+
+    def __init__(self, hidden_dim: int, num_heads: int, dropout: float = 0.15) -> None:
+        super().__init__()
+        # MPNN branch
+        self.mpnn = GINELayer(hidden_dim, dropout)
+        self.mpnn_norm = nn.LayerNorm(hidden_dim)
+        # Global attention branch (no edge features per paper design)
+        self.attn = nn.MultiheadAttention(
+            hidden_dim, num_heads, batch_first=True, dropout=dropout
+        )
+        self.attn_norm = nn.LayerNorm(hidden_dim)
+        # 2-layer MLP fusion block
+        self.mlp = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim * 2),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim * 2, hidden_dim),
+        )
+        self.mlp_norm = nn.LayerNorm(hidden_dim)
+        self.dropout = dropout
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        adj: torch.Tensor,
+        mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        # --- MPNN branch (local neighborhood) ---
+        h_mpnn = self.mpnn(x, adj, mask)
+        h_mpnn = F.dropout(h_mpnn, p=self.dropout, training=self.training)
+        x_mpnn = self.mpnn_norm(x + h_mpnn)  # residual + norm
+
+        # --- Global attention branch ---
+        key_padding_mask = ~mask if mask is not None else None
+        h_attn, _ = self.attn(x, x, x, key_padding_mask=key_padding_mask, need_weights=False)
+        h_attn = F.dropout(h_attn, p=self.dropout, training=self.training)
+        x_attn = self.attn_norm(x + h_attn)  # residual + norm
+
+        # --- Fusion: sum + MLP ---
+        x_fused = x_mpnn + x_attn
+        h_mlp = self.mlp(x_fused)
+        h_mlp = F.dropout(h_mlp, p=self.dropout, training=self.training)
+        return self.mlp_norm(x_fused + h_mlp)  # residual + norm
+
+
 class GraphTransformerModel(nn.Module):
+    """GPS Graph Transformer following Rampášek et al. NeurIPS 2022.
+
+    Architecture:
+    1. Input embedding: node features + Laplacian PE + RWSE → MLP projections
+    2. GPS layers: each = MPNN(GINE) + Self-Attention + MLP fusion
+    3. Readout: masked mean pooling over nodes
+    4. Classification head
+    """
+
     def __init__(
         self,
         in_dim: int = 120,
         hidden_dim: int = 64,
-        num_layers: int = 2,
+        num_layers: int = 4,
         num_heads: int = 4,
         num_classes: int = 2,
-        dropout: float = 0.3,
+        dropout: float = 0.15,
         pe_dim: int = 8,
+        rw_dim: int = 16,
     ) -> None:
         super().__init__()
         self.pe_dim = pe_dim
-        self.lin_in = nn.Linear(in_dim, hidden_dim)
-        self.pe_proj = nn.Linear(pe_dim, hidden_dim) if pe_dim > 0 else None
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=hidden_dim,
-            nhead=num_heads,
-            dim_feedforward=hidden_dim * 2,
-            dropout=dropout,
-            batch_first=True,
-            activation="gelu",
-            norm_first=True,
+        self.rw_dim = rw_dim
+        # Input encoders: project each encoding type into hidden_dim
+        self.node_encoder = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
         )
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.dropout = dropout
-        self.norm = nn.LayerNorm(hidden_dim)
-        self.head = GraphClassifierHead(hidden_dim, num_classes=num_classes, dropout=0.5)
+        self.pe_encoder = nn.Linear(pe_dim, hidden_dim) if pe_dim > 0 else None
+        self.rw_encoder = nn.Linear(rw_dim, hidden_dim) if rw_dim > 0 else None
+        self.input_norm = nn.LayerNorm(hidden_dim)
+        self.input_dropout = nn.Dropout(dropout)
+
+        # GPS layers (hybrid MPNN + Transformer)
+        self.gps_layers = nn.ModuleList(
+            [GPSLayer(hidden_dim, num_heads, dropout) for _ in range(num_layers)]
+        )
+
+        self.head = GraphClassifierHead(
+            hidden_dim, num_classes=num_classes, dropout=0.5
+        )
 
     def forward(
         self,
@@ -310,15 +438,28 @@ class GraphTransformerModel(nn.Module):
         pe: torch.Tensor | None = None,
         comm: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
+        rws: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        x = self.lin_in(x)
-        if pe is not None and self.pe_proj is not None:
-            x = x + self.pe_proj(pe)
-        x = self.norm(x)
-        key_padding_mask = ~mask if mask is not None else None
-        x = self.encoder(x, src_key_padding_mask=key_padding_mask)
-        x = masked_mean(x, mask)
-        return self.head(x)
+        # Input encoding: project and sum node + PE + RWSE features
+        x = self.node_encoder(x)
+        if pe is not None and self.pe_encoder is not None:
+            x = x + self.pe_encoder(pe)
+        if rws is not None and rws.size(-1) > 0 and self.rw_encoder is not None:
+            x = x + self.rw_encoder(rws)
+        x = self.input_norm(x)
+        x = self.input_dropout(x)
+
+        # Mask node features for padded positions
+        if mask is not None:
+            x = x * mask.unsqueeze(-1).to(dtype=x.dtype)
+
+        # GPS layers
+        for layer in self.gps_layers:
+            x = layer(x, adj, mask)
+
+        # Graph-level readout
+        g = masked_mean(x, mask)
+        return self.head(g)
 
 
 def build_model(
@@ -331,6 +472,7 @@ def build_model(
     pe_dim: int = 8,
     topk: int = 8,
     num_classes: int = 2,
+    rw_dim: int = 16,
 ) -> nn.Module:
     name = model_name.lower()
     if name == "gcn":
@@ -350,5 +492,6 @@ def build_model(
             num_classes=num_classes,
             dropout=dropout,
             pe_dim=pe_dim,
+            rw_dim=rw_dim,
         )
     raise ValueError(f"unknown model: {model_name}")

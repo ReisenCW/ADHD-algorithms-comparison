@@ -75,16 +75,16 @@ MODEL_DEFAULTS = {
         },
     },
     "gt": {
-        "base": {"heads": 2, "topk": 8},
+        "base": {"heads": 4, "pe_dim": 8, "rw_dim": 16, "topk": 8},
         "tasks": {
-            "SLD": {"lr": 0.0005, "weight_decay": 0.0001, "hidden_dim": 16, "num_layers": 2, "dropout": 0.3, "pe_dim": 4},
-            "SLI": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 1, "dropout": 0.3, "pe_dim": 8},
-            "SSD": {"lr": 0.0005, "weight_decay": 0.0001, "hidden_dim": 16, "num_layers": 2, "dropout": 0.3, "pe_dim": 4},
-            "SSI": {"lr": 0.0005, "weight_decay": 0.0001, "hidden_dim": 16, "num_layers": 2, "dropout": 0.3, "pe_dim": 4},
-            "VLD": {"lr": 0.0005, "weight_decay": 0.0001, "hidden_dim": 16, "num_layers": 2, "dropout": 0.3, "pe_dim": 4},
-            "VLI": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 16, "num_layers": 1, "dropout": 0.2, "pe_dim": 8},
-            "VSD": {"lr": 0.0005, "weight_decay": 0.0001, "hidden_dim": 16, "num_layers": 2, "dropout": 0.3, "pe_dim": 4},
-            "VSI": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 16, "num_layers": 1, "dropout": 0.2, "pe_dim": 8},
+            "SLD": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 4, "dropout": 0.15},
+            "SLI": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 4, "dropout": 0.15},
+            "SSD": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 4, "dropout": 0.15},
+            "SSI": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 4, "dropout": 0.15},
+            "VLD": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 4, "dropout": 0.15},
+            "VLI": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 4, "dropout": 0.15},
+            "VSD": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 4, "dropout": 0.15},
+            "VSI": {"lr": 0.001, "weight_decay": 0.0001, "hidden_dim": 32, "num_layers": 4, "dropout": 0.15},
         },
     },
 }
@@ -108,6 +108,7 @@ def resolve_run_config(task: str, model: str, args: argparse.Namespace) -> dict:
         "heads": args.heads,
         "dropout": args.dropout,
         "pe_dim": args.pe_dim,
+        "rw_dim": args.rw_dim,
         "topk": args.topk,
         "monitor": args.monitor,
         "feature_mode": args.feature_mode,
@@ -139,6 +140,7 @@ def train_all_main(argv=None):
     parser.add_argument("--heads", type=int, default=None, help="override the tuned default")
     parser.add_argument("--dropout", type=float, default=None, help="override the tuned default")
     parser.add_argument("--pe-dim", type=int, default=None, help="override the tuned default")
+    parser.add_argument("--rw-dim", type=int, default=None, help="override the tuned default")
     parser.add_argument("--topk", type=int, default=None, help="override the tuned default")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", default=None)
@@ -189,6 +191,9 @@ def train_all_main(argv=None):
             str(cfg["dropout"]),
             "--pe-dim",
             str(cfg["pe_dim"]),
+            "--rw-dim",
+            str(cfg.get("rw_dim", 16)),
+            "--cosine-schedule",
             "--topk",
             str(cfg["topk"]),
             "--seed",

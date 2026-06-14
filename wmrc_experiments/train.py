@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 import torch
@@ -34,13 +35,14 @@ def run_epoch(model, loader, criterion, device, optimizer=None):
         x = batch["x"].to(device)
         adj = batch["adj"].to(device)
         pe = batch["pe"].to(device)
+        rws = batch["rws"].to(device)
         comm = batch["comm"].to(device)
         mask = batch["mask"].to(device)
         y = batch["y"].to(device)
 
         if train_mode:
             optimizer.zero_grad(set_to_none=True)
-        logits = model(x, adj, pe=pe, comm=comm, mask=mask)
+        logits = model(x, adj, pe=pe, rws=rws, comm=comm, mask=mask)
         loss = criterion(logits, y)
         if train_mode:
             loss.backward()
@@ -79,6 +81,7 @@ def train_main(argv=None):
     parser.add_argument("--heads", type=int, default=4)
     parser.add_argument("--dropout", type=float, default=0.3)
     parser.add_argument("--pe-dim", type=int, default=8)
+    parser.add_argument("--rw-dim", type=int, default=16, help="Random Walk SE dimension (0=disable)")
     parser.add_argument("--topk", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -89,6 +92,8 @@ def train_main(argv=None):
     parser.add_argument("--feature-mode", default="full", choices=["full", "adj_only", "adj_degree", "adj_coords"])
     parser.add_argument("--balance-batches", action="store_true")
     parser.add_argument("--label-smoothing", type=float, default=0.0)
+    parser.add_argument("--cosine-schedule", action="store_true", help="Use cosine LR with warmup")
+    parser.add_argument("--warmup-epochs", type=int, default=5)
     args = parser.parse_args(argv)
 
     torch.manual_seed(args.seed)
@@ -98,6 +103,7 @@ def train_main(argv=None):
         task_filter=args.task,
         max_samples=args.max_samples,
         pe_dim=args.pe_dim,
+        rw_dim=args.rw_dim,
         feature_mode=args.feature_mode,
     )
     split = split_by_subject(dataset, seed=args.seed)
@@ -123,6 +129,7 @@ def train_main(argv=None):
         dropout=args.dropout,
         pe_dim=args.pe_dim,
         topk=args.topk,
+        rw_dim=args.rw_dim,
     ).to(device)
 
     class_weight = None
@@ -134,6 +141,16 @@ def train_main(argv=None):
     criterion = nn.CrossEntropyLoss(weight=class_weight, label_smoothing=args.label_smoothing)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
+    # Cosine LR scheduler with warmup (GPS paper recommendation)
+    scheduler = None
+    if args.cosine_schedule:
+        def _cosine_schedule(epoch: int) -> float:
+            if epoch < args.warmup_epochs:
+                return (epoch + 1) / max(1, args.warmup_epochs)
+            progress = (epoch - args.warmup_epochs) / max(1, args.epochs - args.warmup_epochs)
+            return 0.5 * (1.0 + math.cos(math.pi * progress))
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=_cosine_schedule)
+
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     ckpt_path = out_dir / f"{args.model}_{args.task}.pt"
@@ -144,6 +161,8 @@ def train_main(argv=None):
 
     for epoch in range(1, args.epochs + 1):
         train_metrics = run_epoch(model, train_loader, criterion, device, optimizer=optimizer)
+        if scheduler is not None:
+            scheduler.step()
         val_metrics = run_epoch(model, val_loader, criterion, device, optimizer=None)
         history.append({"epoch": epoch, "train": train_metrics, "val": val_metrics})
 
@@ -170,6 +189,7 @@ def train_main(argv=None):
                         "heads": args.heads,
                         "dropout": args.dropout,
                         "pe_dim": args.pe_dim,
+                        "rw_dim": args.rw_dim,
                         "topk": args.topk,
                     },
                     "split": split,
