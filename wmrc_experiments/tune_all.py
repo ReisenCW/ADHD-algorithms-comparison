@@ -51,10 +51,11 @@ MODEL_CANDIDATES = {
         {"hidden_dim": 32, "topk": 8, "dropout": 0.1, "lr": 2e-3},
     ],
     "gt": [
-        {"hidden_dim": 32, "num_layers": 4, "heads": 4, "dropout": 0.15, "lr": 1e-3, "pe_dim": 8, "rw_dim": 16, "weight_decay": 1e-4},
-        {"hidden_dim": 48, "num_layers": 4, "heads": 4, "dropout": 0.15, "lr": 1e-3, "pe_dim": 8, "rw_dim": 16, "weight_decay": 1e-4},
-        {"hidden_dim": 32, "num_layers": 6, "heads": 4, "dropout": 0.1, "lr": 5e-4, "pe_dim": 8, "rw_dim": 16, "weight_decay": 1e-3},
-        {"hidden_dim": 64, "num_layers": 4, "heads": 4, "dropout": 0.15, "lr": 5e-4, "pe_dim": 8, "rw_dim": 16, "weight_decay": 1e-4},
+        {"hidden_dim": 32, "num_layers": 2, "heads": 4, "dropout": 0.1, "lr": 3e-3, "pe_dim": 8},
+        {"hidden_dim": 32, "num_layers": 3, "heads": 4, "dropout": 0.15, "lr": 2e-3, "pe_dim": 8},
+        {"hidden_dim": 64, "num_layers": 2, "heads": 4, "dropout": 0.15, "lr": 2e-3, "pe_dim": 8},
+        {"hidden_dim": 32, "num_layers": 3, "heads": 2, "dropout": 0.1, "lr": 3e-3, "pe_dim": 8},
+        {"hidden_dim": 16, "num_layers": 2, "heads": 2, "dropout": 0.2, "lr": 1e-3, "pe_dim": 8},
     ],
 }
 

@@ -1,19 +1,19 @@
 {
   "model": "gt",
   "task": "SSI",
-  "best_epoch": 5,
-  "best_score": 0.511278195488287,
+  "best_epoch": 1,
+  "best_score": 0.3157894736839612,
   "monitor": "val_macro_f1",
   "test": {
-    "loss": 0.694497979604281,
-    "acc": 0.5384615659713745,
-    "f1": 0.0,
-    "macro_f1": 0.3499999999997375,
-    "balanced_acc": 0.49999999999992856
+    "loss": 0.7021250403844393,
+    "acc": 0.4615384638309479,
+    "f1": 0.6315789473679224,
+    "macro_f1": 0.3157894736839612,
+    "balanced_acc": 0.4999999999999167
   },
   "num_samples": 65,
   "num_train": 39,
   "num_val": 13,
   "num_test": 13,
-  "checkpoint": "checkpoints\\gt_SSI.pt"
+  "checkpoint": "checkpoints/gt_SSI.pt"
 }

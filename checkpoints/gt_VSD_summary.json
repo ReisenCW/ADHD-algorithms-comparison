@@ -1,19 +1,19 @@
 {
   "model": "gt",
   "task": "VSD",
-  "best_epoch": 6,
-  "best_score": 0.4974358974353911,
+  "best_epoch": 1,
+  "best_score": 0.2631578947366205,
   "monitor": "val_macro_f1",
   "test": {
-    "loss": 0.6999994771821159,
-    "acc": 0.6428571343421936,
-    "f1": 0.7058823529406367,
-    "macro_f1": 0.6256684491973432,
-    "balanced_acc": 0.6874999999998932
+    "loss": 0.7124387707029071,
+    "acc": 0.4285714328289032,
+    "f1": 0.59999999999952,
+    "macro_f1": 0.29999999999976,
+    "balanced_acc": 0.4999999999999167
   },
   "num_samples": 70,
   "num_train": 42,
   "num_val": 14,
   "num_test": 14,
-  "checkpoint": "checkpoints\\gt_VSD.pt"
+  "checkpoint": "checkpoints/gt_VSD.pt"
 }

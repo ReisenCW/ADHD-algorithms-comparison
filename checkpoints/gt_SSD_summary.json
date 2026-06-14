@@ -1,19 +1,19 @@
 {
   "model": "gt",
   "task": "SSD",
-  "best_epoch": 5,
-  "best_score": 0.5124999999994349,
+  "best_epoch": 1,
+  "best_score": 0.3157894736839612,
   "monitor": "val_macro_f1",
   "test": {
-    "loss": 0.6933501561482748,
-    "acc": 0.5833333134651184,
-    "f1": 0.44444444444385184,
-    "macro_f1": 0.5555555555549658,
-    "balanced_acc": 0.5571428571427661
+    "loss": 0.7110437949498495,
+    "acc": 0.4166666567325592,
+    "f1": 0.5882352941171626,
+    "macro_f1": 0.2941176470585813,
+    "balanced_acc": 0.49999999999989997
   },
   "num_samples": 64,
   "num_train": 39,
   "num_val": 13,
   "num_test": 12,
-  "checkpoint": "checkpoints\\gt_SSD.pt"
+  "checkpoint": "checkpoints/gt_SSD.pt"
 }

@@ -1,19 +1,19 @@
 {
   "model": "gt",
   "task": "SLI",
-  "best_epoch": 1,
-  "best_score": 0.4583333333329334,
+  "best_epoch": 8,
+  "best_score": 0.5124999999994349,
   "monitor": "val_macro_f1",
   "test": {
-    "loss": 0.6940634709138137,
-    "acc": 0.4615384638309479,
-    "f1": 0.6315789473679224,
-    "macro_f1": 0.3157894736839612,
-    "balanced_acc": 0.4999999999999167
+    "loss": 0.6939506989258987,
+    "acc": 0.6153846383094788,
+    "f1": 0.4444444444439012,
+    "macro_f1": 0.5751633986922551,
+    "balanced_acc": 0.5952380952380062
   },
   "num_samples": 66,
   "num_train": 40,
   "num_val": 13,
   "num_test": 13,
-  "checkpoint": "checkpoints\\gt_SLI.pt"
+  "checkpoint": "checkpoints/gt_SLI.pt"
 }

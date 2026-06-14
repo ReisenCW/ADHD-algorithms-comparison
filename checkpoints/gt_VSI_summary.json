@@ -1,19 +1,19 @@
 {
   "model": "gt",
   "task": "VSI",
-  "best_epoch": 7,
-  "best_score": 0.6256684491972728,
+  "best_epoch": 3,
+  "best_score": 0.42690058479494886,
   "monitor": "val_macro_f1",
   "test": {
-    "loss": 0.7043743173281352,
+    "loss": 0.7228681047757467,
     "acc": 0.3333333432674408,
-    "f1": 0.4444444444439506,
-    "macro_f1": 0.30555555555510727,
-    "balanced_acc": 0.3888888888888271
+    "f1": 0.49999999999953,
+    "macro_f1": 0.249999999999765,
+    "balanced_acc": 0.41666666666659724
   },
   "num_samples": 72,
   "num_train": 43,
   "num_val": 14,
   "num_test": 15,
-  "checkpoint": "checkpoints\\gt_VSI.pt"
+  "checkpoint": "checkpoints/gt_VSI.pt"
 }

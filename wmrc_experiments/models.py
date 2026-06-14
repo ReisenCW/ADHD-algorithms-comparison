@@ -418,11 +418,15 @@ class GraphTransformerModel(nn.Module):
         self.ffn = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim * 4),
             nn.GELU(),
-            nn.Dropout(dropout),
+            nn.Dropout(dropout * 0.5),
             nn.Linear(hidden_dim * 4, hidden_dim),
             nn.Dropout(dropout),
         )
         self.attn_dropout = nn.Dropout(dropout)
+
+        # 可学习残差缩放因子, 初始化为1/sqrt(num_layers)帮助深层训练稳定
+        self.scale_attn = nn.Parameter(torch.full((1,), 0.5))
+        self.scale_ffn = nn.Parameter(torch.full((1,), 0.5))
 
     def forward(self, x: torch.Tensor, adj: torch.Tensor, key_padding_mask: torch.Tensor | None = None) -> torch.Tensor:
         bsz, n, _ = x.shape
@@ -457,15 +461,19 @@ class GraphTransformerModel(nn.Module):
         out = out.transpose(1, 2).contiguous().view(bsz, n, -1)
         out = self.out_proj(out)
 
-        x = x + out
-        x = x + self.ffn(self.norm2(x))
+        x = x + self.scale_attn * out
+        x = x + self.scale_ffn * self.ffn(self.norm2(x))
         return x
 
 
 class GraphTransformerModel(nn.Module):
     """Graph Transformer: Generalization of Transformer to Graphs (Dwivedi & Bresson, 2021)
 
-    改进: 将邻接矩阵作为注意力偏置注入每层, 使Transformer感知图结构。
+    改进:
+    1. 将邻接矩阵作为注意力偏置注入每层, 使Transformer感知图结构。
+    2. 在Transformer层前加入GCN消息传递层, 提供局部图结构归纳偏置,
+       使小样本场景下也能学到有效的节点表示。
+    3. 使用可学习残差缩放因子稳定深层训练。
     """
     def __init__(
         self,
@@ -483,6 +491,9 @@ class GraphTransformerModel(nn.Module):
         self.lin_in = nn.Linear(in_dim, hidden_dim)
         self.pe_proj = nn.Linear(pe_dim, hidden_dim) if pe_dim > 0 else None
         self.norm = nn.LayerNorm(hidden_dim)
+
+        # GCN消息传递前缀层: 提取局部图结构特征作为归纳偏置
+        self.gcn_prefix = GCNLayer(hidden_dim, hidden_dim)
 
         layers = []
         for _ in range(num_layers):
@@ -505,6 +516,10 @@ class GraphTransformerModel(nn.Module):
         if pe is not None and self.pe_proj is not None:
             x = x + self.pe_proj(pe)
         x = self.norm(x)
+
+        # GCN前缀: 聚合1-hop邻居信息, 为Transformer提供局部结构先验
+        x = x + F.relu(self.gcn_prefix(x, adj))
+        x = F.dropout(x, p=self.dropout * 0.5, training=self.training)
 
         key_padding_mask = ~mask if mask is not None else None
         for layer in self.layers:
